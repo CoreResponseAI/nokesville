@@ -690,7 +690,7 @@ async function launchApp() {
   document.getElementById('app').style.display = 'block';
   await loadAll();
   applyAccessLevel();
-  document.getElementById('meetingHeader').textContent = '[Meeting day/time] · [Location]';
+  document.getElementById('meetingHeader').textContent = 'Every 2nd Thursday · 9:30 AM · Vita Nova';
   if (isAdmin) {
     const renewalBtn = document.getElementById('sort-renewal');
     if (renewalBtn) renewalBtn.style.display = '';
