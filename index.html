@@ -218,6 +218,34 @@
     .event-past-badge { background: #f3f4f6; color: #6b7280; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
     .event-empty { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
 
+    /* PROFILE CLAIM / COMPLETION / PENDING UPDATES */
+    .claim-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--periwinkle); background: #eef2ff; color: var(--navy); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; }
+    .claim-btn:hover { background: #e0e6fb; }
+    .completion-wrap { margin-top: 8px; }
+    .completion-bar-bg { width: 100%; max-width: 160px; height: 6px; border-radius: 4px; background: #e5e7f5; overflow: hidden; margin-top: 3px; }
+    .completion-bar-fill { height: 100%; border-radius: 4px; background: var(--green); transition: width .2s; }
+    .completion-bar-fill.low { background: #dc2626; }
+    .completion-bar-fill.mid { background: #d97706; }
+    .completion-label { font-size: 11px; font-weight: 700; color: var(--gray); }
+    .consent-field { display: flex; align-items: flex-start; gap: 8px; background: var(--light); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 6px; }
+    .consent-field input[type="checkbox"] { width: auto; margin-top: 3px; flex-shrink: 0; }
+    .consent-field label { font-size: 12px; font-weight: 500; color: var(--dark); line-height: 1.5; }
+    .visibility-banner { background: linear-gradient(135deg, var(--navy), #2d3e8f); border-radius: 14px; padding: 18px 20px; color: #fff; margin-bottom: 16px; }
+    .visibility-banner h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .visibility-banner p { font-size: 13px; color: #a5b0e8; }
+    .pending-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+    .pending-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .pending-biz-name { font-weight: 700; font-size: 15px; color: var(--dark); }
+    .pending-date { font-size: 12px; color: var(--gray); }
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+    .diff-col-header { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; padding: 8px 12px; background: var(--light); color: var(--gray); }
+    .diff-row { display: contents; }
+    .diff-cell { padding: 8px 12px; font-size: 13px; border-top: 1px solid #f0f0f0; word-break: break-word; }
+    .diff-field-label { font-size: 11px; font-weight: 700; color: var(--periwinkle); display: block; margin-bottom: 2px; }
+    .diff-cell.changed { background: #fffbeb; }
+    .pending-admin-btns { display: flex; gap: 8px; }
+    .pending-empty { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+
     /* MODAL */
     .overlay, .event-modal-overlay { display: none; position: fixed; inset: 0; background: #00000066; z-index: 100; align-items: center; justify-content: center; padding: 16px; }
     .overlay.open, .event-modal-overlay.open { display: flex; }
@@ -367,6 +395,7 @@
       <div class="tab" id="tab-attendance" onclick="showTab('attendance')">✅ Attendance</div>
       <div class="tab" id="tab-announcements" onclick="showTab('announcements')">📣 Announcements</div>
       <div class="tab" id="tab-events" onclick="showTab('events')">🎉 Events <span id="eventsPendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">!</span></div>
+      <div class="tab" id="tab-claims" onclick="showTab('claims')">📋 Pending Updates <span id="claimsPendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">!</span></div>
     </div>
   </div>
 
@@ -487,6 +516,14 @@
     </div>
   </div>
 
+  <!-- PENDING PROFILE UPDATES (admin only) -->
+  <div id="view-claims" style="display:none">
+    <div class="events-wrap">
+      <div class="events-section-title">📋 Pending Profile Updates</div>
+      <div id="pendingUpdatesFeed"></div>
+    </div>
+  </div>
+
   <div class="footer">
     <div style="text-align:center;margin-bottom:12px"><img src="https://i.imgur.com/LpBodPi.png" alt="CORE AI" style="height:40px;opacity:0.9"></div>
     <p><strong>CORE AI</strong> | Core Response AI | Powerful Business Solutions | A Tayyab Group, Inc. Company</p>
@@ -591,6 +628,52 @@
   </div>
 </div>
 
+<!-- CLAIM / UPDATE PROFILE MODAL -->
+<div class="event-modal-overlay" id="claimModalOverlay">
+  <div class="event-modal">
+    <div class="modal-header">
+      <h2>Increase Your Business Visibility</h2>
+      <button class="close-btn" onclick="closeClaimModal()">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.5">
+      Help other members and potential customers discover <strong id="claimBizName"></strong>. Businesses with complete profiles are easier to find, receive more referrals, and create stronger networking opportunities.
+      Changes are reviewed by NBA before they go live.
+    </p>
+    <div class="section-label">Business Info</div>
+    <div class="field"><label>Contact Person</label><input id="c-contact-person" /></div>
+    <div class="field"><label>Business Description</label><textarea id="c-description" placeholder="A short description of what your business does"></textarea></div>
+    <div class="field-row">
+      <div class="field"><label>Primary Category</label><input id="c-category-primary" placeholder="e.g. Real Estate" /></div>
+      <div class="field"><label>Secondary Category (optional)</label><input id="c-category-secondary" /></div>
+    </div>
+    <div class="field"><label>Business Address (optional)</label><input id="c-address" /></div>
+
+    <div class="section-label">Social Media</div>
+    <div class="field"><label>Facebook</label><input id="c-facebook" placeholder="https://facebook.com/..." /></div>
+    <div class="field"><label>Instagram</label><input id="c-instagram" placeholder="https://instagram.com/..." /></div>
+    <div class="field"><label>LinkedIn</label><input id="c-linkedin" placeholder="https://linkedin.com/..." /></div>
+    <div class="field"><label>YouTube (optional)</label><input id="c-youtube" placeholder="https://youtube.com/..." /></div>
+
+    <div class="section-label">Online Presence</div>
+    <div class="field"><label>Google Business Profile URL</label><input id="c-google-business" placeholder="https://g.page/..." /></div>
+    <div class="field"><label>Google Review Link</label><input id="c-google-review" placeholder="https://g.page/r/..." /></div>
+
+    <div class="section-label">Branding</div>
+    <div class="field"><label>Business Logo (image URL)</label><input id="c-logo" placeholder="https://..." /></div>
+    <div class="field"><label>Featured Image (optional, image URL)</label><input id="c-featured-image" /></div>
+
+    <div class="consent-field">
+      <input type="checkbox" id="c-consent" />
+      <label for="c-consent">By joining this directory, you agree that other members of Nokesville Business Association may contact you regarding networking, referrals, and business opportunities using the information in your profile.</label>
+    </div>
+
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeClaimModal()">Cancel</button>
+      <button class="save" onclick="submitClaim()">Submit for Review</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -616,22 +699,36 @@ let visitors = [];
 let meetings = [];
 let announcements = [];
 let events = [];
+let pendingUpdates = [];
+let claimingMemberId = null;
 
 // ── LOAD DATA FROM SUPABASE ───────────────────────────────────
 async function loadAll() {
-  const [m, v, mt, a, e] = await Promise.all([
+  const [m, v, mt, a, e, pu] = await Promise.all([
     sb.from('nokesville_members').select('*').order('biz'),
     sb.from('nokesville_visitors').select('*').order('created_at'),
     sb.from('nokesville_meetings').select('*').order('date', { ascending: false }),
     sb.from('nokesville_announcements').select('*').order('created_at', { ascending: false }),
     sb.from('nokesville_events').select('*').order('date'),
+    sb.from('nokesville_pending_updates').select('*').order('submitted_at', { ascending: false }),
   ]);
   members = (m.data || []).map(r => ({
     id: r.id, biz: r.biz||'', contact: r.contact||'', seat: r.seat||'',
     phone: r.phone||'', email: r.email||'', website: r.website||'',
     googleReview: r.google_review||'',
     status: r.status||'Active', since: r.since||'', renewal: r.renewal||'',
-    offer: r.offer||'', looking: r.looking||'', notes: r.notes||''
+    offer: r.offer||'', looking: r.looking||'', notes: r.notes||'',
+    contactPerson: r.contact_person||'', description: r.description||'',
+    categoryPrimary: r.category_primary||'', categorySecondary: r.category_secondary||'',
+    facebook: r.facebook||'', instagram: r.instagram||'', linkedin: r.linkedin||'', youtube: r.youtube||'',
+    googleBusinessUrl: r.google_business_url||'', address: r.address||'',
+    logoUrl: r.logo_url||'', featuredImageUrl: r.featured_image_url||'',
+    consentContact: r.consent_contact||false, consentDate: r.consent_date||''
+  }));
+  pendingUpdates = (pu.data || []).map(r => ({
+    id: r.id, memberId: r.member_id, submitted: r.submitted||{},
+    status: r.status||'pending', submittedAt: r.submitted_at||'',
+    reviewedAt: r.reviewed_at||'', adminNotes: r.admin_notes||''
   }));
   visitors = (v.data || []).map(r => ({
     id: r.id, first: r.first||'', last: r.last||'', biz: r.biz||'',
@@ -695,7 +792,7 @@ async function launchApp() {
     const renewalBtn = document.getElementById('sort-renewal');
     if (renewalBtn) renewalBtn.style.display = '';
   }
-  render(); renderVisitors(); renderAnnouncements(); renderEvents();
+  render(); renderVisitors(); renderAnnouncements(); renderEvents(); renderPendingUpdates();
   document.getElementById('meetingDate').value = new Date().toISOString().slice(0,10);
   loadAttendance();
   renderPastMeetings();
@@ -705,7 +802,7 @@ function applyAccessLevel() {
   const hide = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'none'; };
   if (!isAdmin) {
     hide('exportBtn'); hide('copyEmailsBtn'); hide('addVisitorBtn'); hide('addMemberBtn');
-    hide('tab-visitors'); hide('tab-attendance'); hide('saveAttBtn'); hide('sort-renewal');
+    hide('tab-visitors'); hide('tab-attendance'); hide('saveAttBtn'); hide('sort-renewal'); hide('tab-claims');
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#eef2ff;border-bottom:2px solid #6b7fd4;padding:8px 28px;text-align:center;font-size:13px;color:#1a2b6b;font-weight:600;';
     banner.textContent = '👥 Member View — Contact NBA admin to make changes';
@@ -721,7 +818,7 @@ function showToast(msg) {
 }
 
 function showTab(tab) {
-  ['members','visitors','attendance','announcements','events'].forEach(t => {
+  ['members','visitors','attendance','announcements','events','claims'].forEach(t => {
     document.getElementById('view-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('tab-'+t).className = 'tab' + (t === tab ? ' active' : '');
   });
@@ -776,6 +873,41 @@ function reviewLinkHtml(url, small) {
   return `<a href="${url}" target="_blank" style="display:inline-block;margin-top:4px;${size}background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:20px;text-decoration:none;font-weight:700">⭐ Leave a Review</a>`;
 }
 
+// ── PROFILE COMPLETION ────────────────────────────────────────
+const COMPLETION_FIELDS = [
+  { key: 'website', label: 'Website' },
+  { key: 'googleReview', label: 'Google Review Link' },
+  { key: 'googleBusinessUrl', label: 'Google Business Profile' },
+  { key: 'description', label: 'Business Description' },
+  { key: 'categoryPrimary', label: 'Primary Category' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'linkedin', label: 'LinkedIn' },
+  { key: 'logoUrl', label: 'Business Logo' },
+  { key: 'address', label: 'Business Address' }
+];
+
+function profileCompletion(m) {
+  const filled = COMPLETION_FIELDS.filter(f => (m[f.key]||'').toString().trim() !== '');
+  const pct = Math.round((filled.length / COMPLETION_FIELDS.length) * 100);
+  const missing = COMPLETION_FIELDS.filter(f => (m[f.key]||'').toString().trim() === '').map(f => f.label);
+  return { pct, missing };
+}
+
+function completionHtml(m) {
+  const { pct, missing } = profileCompletion(m);
+  const barClass = pct >= 70 ? '' : pct >= 40 ? 'mid' : 'low';
+  const missingText = missing.length ? `Missing: ${missing.slice(0,3).join(', ')}${missing.length>3?'…':''}` : 'Profile complete! 🎉';
+  return `<div class="completion-wrap">
+    <div class="completion-label">Profile Completion: ${pct}% <span style="font-weight:500;color:#999">— ${missingText}</span></div>
+    <div class="completion-bar-bg"><div class="completion-bar-fill ${barClass}" style="width:${pct}%"></div></div>
+  </div>`;
+}
+
+function claimBtnHtml(m) {
+  return `<button class="claim-btn" onclick="openClaimModal(${m.id})">📋 Claim or Update This Business Profile</button>`;
+}
+
 // ── MEMBERS ───────────────────────────────────────────────────
 function render() {
   const q = document.getElementById('searchInput').value.toLowerCase();
@@ -812,7 +944,7 @@ function render() {
     ? '<div class="empty">No members found</div>'
     : filtered.map(m => `
     <div class="table-row ${isAdmin ? '' : 'member-view'}">
-      <div><div class="biz-name">${m.biz}</div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa">${m.website}</div>`:''}${reviewLinkHtml(m.googleReview)}</div>
+      <div><div class="biz-name">${m.biz}</div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa">${m.website}</div>`:''}${reviewLinkHtml(m.googleReview)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
       <div><span class="seat-badge">${m.seat}</span></div>
       ${isAdmin ? `<div>${renewalBadge(m.renewal)}</div><div>${daysLeftBadge(m.renewal)}</div>` : ''}
       <div style="font-size:13px;color:var(--gray)"><a href="tel:${m.phone}" style="color:inherit;text-decoration:none">${m.phone}</a></div>
@@ -833,6 +965,8 @@ function render() {
           ${m.email?`<a href="mailto:${m.email}" class="member-card-email">✉️ ${m.email}</a>`:''}
         </div>
         ${reviewLinkHtml(m.googleReview, true)}
+        ${isAdmin?completionHtml(m):''}
+        ${claimBtnHtml(m)}
       </div>
       <div>
         <span class="seat-badge" style="font-size:12px">${m.seat}</span>
@@ -1101,6 +1235,154 @@ async function saveEvent() {
   showToast(isAdmin ? '✅ Event posted!' : '✅ Event submitted — pending approval');
 }
 
+// ── CLAIM / UPDATE PROFILE ────────────────────────────────────
+function openClaimModal(id) {
+  claimingMemberId = id;
+  const m = members.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('claimBizName').textContent = m.biz;
+  document.getElementById('c-contact-person').value = m.contactPerson || '';
+  document.getElementById('c-description').value = m.description || '';
+  document.getElementById('c-category-primary').value = m.categoryPrimary || m.seat || '';
+  document.getElementById('c-category-secondary').value = m.categorySecondary || '';
+  document.getElementById('c-address').value = m.address || '';
+  document.getElementById('c-facebook').value = m.facebook || '';
+  document.getElementById('c-instagram').value = m.instagram || '';
+  document.getElementById('c-linkedin').value = m.linkedin || '';
+  document.getElementById('c-youtube').value = m.youtube || '';
+  document.getElementById('c-google-business').value = m.googleBusinessUrl || '';
+  document.getElementById('c-google-review').value = m.googleReview || '';
+  document.getElementById('c-logo').value = m.logoUrl || '';
+  document.getElementById('c-featured-image').value = m.featuredImageUrl || '';
+  document.getElementById('c-consent').checked = !!m.consentContact;
+  document.getElementById('claimModalOverlay').classList.add('open');
+}
+
+function closeClaimModal() {
+  document.getElementById('claimModalOverlay').classList.remove('open');
+  claimingMemberId = null;
+}
+
+async function submitClaim() {
+  if (!claimingMemberId) return;
+  if (!document.getElementById('c-consent').checked) {
+    showToast('Please check the box agreeing to member contact before submitting');
+    return;
+  }
+  const submitted = {
+    contact_person: document.getElementById('c-contact-person').value.trim(),
+    description: document.getElementById('c-description').value.trim(),
+    category_primary: document.getElementById('c-category-primary').value.trim(),
+    category_secondary: document.getElementById('c-category-secondary').value.trim(),
+    address: document.getElementById('c-address').value.trim(),
+    facebook: document.getElementById('c-facebook').value.trim(),
+    instagram: document.getElementById('c-instagram').value.trim(),
+    linkedin: document.getElementById('c-linkedin').value.trim(),
+    youtube: document.getElementById('c-youtube').value.trim(),
+    google_business_url: document.getElementById('c-google-business').value.trim(),
+    google_review: document.getElementById('c-google-review').value.trim(),
+    logo_url: document.getElementById('c-logo').value.trim(),
+    featured_image_url: document.getElementById('c-featured-image').value.trim(),
+    consent_contact: true,
+    consent_date: new Date().toISOString()
+  };
+  await sb.from('nokesville_pending_updates').insert({
+    member_id: claimingMemberId,
+    submitted,
+    status: 'pending'
+  });
+  closeClaimModal();
+  await loadAll();
+  renderPendingUpdates();
+  showToast('✅ Submitted! NBA will review your update shortly.');
+}
+
+// ── ADMIN: PENDING PROFILE UPDATES ────────────────────────────
+const PENDING_FIELD_LABELS = {
+  contact_person: 'Contact Person', description: 'Business Description',
+  category_primary: 'Primary Category', category_secondary: 'Secondary Category',
+  address: 'Business Address', facebook: 'Facebook', instagram: 'Instagram',
+  linkedin: 'LinkedIn', youtube: 'YouTube', google_business_url: 'Google Business Profile',
+  google_review: 'Google Review Link', logo_url: 'Business Logo', featured_image_url: 'Featured Image'
+};
+
+const MEMBER_FIELD_MAP = {
+  contact_person: 'contactPerson', description: 'description',
+  category_primary: 'categoryPrimary', category_secondary: 'categorySecondary',
+  address: 'address', facebook: 'facebook', instagram: 'instagram',
+  linkedin: 'linkedin', youtube: 'youtube', google_business_url: 'googleBusinessUrl',
+  google_review: 'googleReview', logo_url: 'logoUrl', featured_image_url: 'featuredImageUrl'
+};
+
+function renderPendingUpdates() {
+  const badge = document.getElementById('claimsPendingBadge');
+  const pending = pendingUpdates.filter(p => p.status === 'pending');
+  if (badge) badge.style.display = isAdmin && pending.length > 0 ? 'inline' : 'none';
+
+  const feed = document.getElementById('pendingUpdatesFeed');
+  if (!feed) return;
+  if (pending.length === 0) { feed.innerHTML = '<div class="pending-empty">No pending profile updates right now.</div>'; return; }
+
+  feed.innerHTML = pending.map(p => {
+    const m = members.find(x => x.id === p.memberId);
+    const bizName = m ? m.biz : '(member no longer in directory)';
+    const dateStr = p.submittedAt ? new Date(p.submittedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const rows = Object.keys(PENDING_FIELD_LABELS).map(key => {
+      const newVal = (p.submitted[key]||'').toString().trim();
+      if (!newVal) return '';
+      const currentVal = m ? (m[MEMBER_FIELD_MAP[key]]||'').toString().trim() : '';
+      const changed = newVal !== currentVal;
+      return `<div class="diff-row">
+        <div class="diff-cell ${changed?'changed':''}"><span class="diff-field-label">${PENDING_FIELD_LABELS[key]} (current)</span>${currentVal||'—'}</div>
+        <div class="diff-cell ${changed?'changed':''}"><span class="diff-field-label">${PENDING_FIELD_LABELS[key]} (submitted)</span>${newVal}</div>
+      </div>`;
+    }).join('');
+    return `<div class="pending-card">
+      <div class="pending-card-header">
+        <div class="pending-biz-name">${bizName}</div>
+        <div class="pending-date">Submitted ${dateStr}</div>
+      </div>
+      <div class="diff-grid">
+        <div class="diff-col-header">Current</div><div class="diff-col-header">Submitted</div>
+        ${rows}
+      </div>
+      <div class="pending-admin-btns">
+        <button class="event-approve-btn" onclick="approvePendingUpdate(${p.id})">✓ Approve</button>
+        <button class="event-deny-btn" onclick="rejectPendingUpdate(${p.id})">✗ Reject</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approvePendingUpdate(pendingId) {
+  const p = pendingUpdates.find(x => x.id === pendingId);
+  if (!p) return;
+  const memberUpdate = {};
+  Object.keys(MEMBER_FIELD_MAP).forEach(key => {
+    const val = (p.submitted[key]||'').toString().trim();
+    if (val) memberUpdate[key] = val;
+  });
+  if (p.submitted.consent_contact) {
+    memberUpdate.consent_contact = true;
+    memberUpdate.consent_date = p.submitted.consent_date || new Date().toISOString();
+  }
+  if (Object.keys(memberUpdate).length > 0) {
+    await sb.from('nokesville_members').update(memberUpdate).eq('id', p.memberId);
+  }
+  await sb.from('nokesville_pending_updates').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', pendingId);
+  await loadAll();
+  render(); renderPendingUpdates();
+  showToast('✅ Profile update approved and live');
+}
+
+async function rejectPendingUpdate(pendingId) {
+  if (!confirm('Reject this profile update submission?')) return;
+  await sb.from('nokesville_pending_updates').update({ status: 'rejected', reviewed_at: new Date().toISOString() }).eq('id', pendingId);
+  await loadAll();
+  renderPendingUpdates();
+  showToast('🗑️ Profile update rejected');
+}
+
 // ── MEMBER MODAL ──────────────────────────────────────────────
 function openModal(id) {
   editingId = id||null;
@@ -1315,6 +1597,7 @@ function dismissConfirm() { document.getElementById('checkinConfirm').classList.
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal();});
 document.getElementById('visitorOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('visitorOverlay'))closeVisitorModal();});
 document.getElementById('eventModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('eventModalOverlay'))closeEventModal();});
+document.getElementById('claimModalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('claimModalOverlay'))closeClaimModal();});
 </script>
 </body>
 </html>
