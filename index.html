@@ -644,15 +644,15 @@
     <div class="field"><label>Business Description</label><textarea id="c-description" placeholder="A short description of what your business does"></textarea></div>
     <div class="field-row">
       <div class="field"><label>Primary Category</label><input id="c-category-primary" placeholder="e.g. Real Estate" /></div>
-      <div class="field"><label>Secondary Category (optional)</label><input id="c-category-secondary" /></div>
+      <div class="field"><label>Secondary Category</label><input id="c-category-secondary" /></div>
     </div>
-    <div class="field"><label>Business Address (optional)</label><input id="c-address" /></div>
+    <div class="field"><label>Business Address</label><input id="c-address" /></div>
 
     <div class="section-label">Social Media</div>
     <div class="field"><label>Facebook</label><input id="c-facebook" placeholder="https://facebook.com/..." /></div>
     <div class="field"><label>Instagram</label><input id="c-instagram" placeholder="https://instagram.com/..." /></div>
     <div class="field"><label>LinkedIn</label><input id="c-linkedin" placeholder="https://linkedin.com/..." /></div>
-    <div class="field"><label>YouTube (optional)</label><input id="c-youtube" placeholder="https://youtube.com/..." /></div>
+    <div class="field"><label>YouTube</label><input id="c-youtube" placeholder="https://youtube.com/..." /></div>
 
     <div class="section-label">Online Presence</div>
     <div class="field"><label>Google Business Profile URL</label><input id="c-google-business" placeholder="https://g.page/..." /></div>
@@ -660,7 +660,7 @@
 
     <div class="section-label">Branding</div>
     <div class="field"><label>Business Logo (image URL)</label><input id="c-logo" placeholder="https://..." /></div>
-    <div class="field"><label>Featured Image (optional, image URL)</label><input id="c-featured-image" /></div>
+    <div class="field"><label>Featured Image (image URL)</label><input id="c-featured-image" /></div>
 
     <div class="consent-field">
       <input type="checkbox" id="c-consent" />
@@ -873,6 +873,18 @@ function reviewLinkHtml(url, small) {
   return `<a href="${url}" target="_blank" style="display:inline-block;margin-top:4px;${size}background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:20px;text-decoration:none;font-weight:700">⭐ Leave a Review</a>`;
 }
 
+// Member-visible social links. Google Business Profile URL is intentionally NOT included here —
+// it's collected for internal/admin use only and not shown on member-facing cards.
+function socialLinksHtml(m) {
+  const links = [];
+  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" style="text-decoration:none;font-size:16px">📘</a>`);
+  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" style="text-decoration:none;font-size:16px">📷</a>`);
+  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" style="text-decoration:none;font-size:16px">💼</a>`);
+  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" style="text-decoration:none;font-size:16px">▶️</a>`);
+  if (links.length === 0) return '';
+  return `<div style="display:flex;gap:8px;margin-top:6px">${links.join('')}</div>`;
+}
+
 // ── PROFILE COMPLETION ────────────────────────────────────────
 const COMPLETION_FIELDS = [
   { key: 'website', label: 'Website' },
@@ -944,7 +956,7 @@ function render() {
     ? '<div class="empty">No members found</div>'
     : filtered.map(m => `
     <div class="table-row ${isAdmin ? '' : 'member-view'}">
-      <div><div class="biz-name">${m.biz}</div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa">${m.website}</div>`:''}${reviewLinkHtml(m.googleReview)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
+      <div><div class="biz-name">${m.biz}</div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa">${m.website}</div>`:''}${reviewLinkHtml(m.googleReview)}${socialLinksHtml(m)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
       <div><span class="seat-badge">${m.seat}</span></div>
       ${isAdmin ? `<div>${renewalBadge(m.renewal)}</div><div>${daysLeftBadge(m.renewal)}</div>` : ''}
       <div style="font-size:13px;color:var(--gray)"><a href="tel:${m.phone}" style="color:inherit;text-decoration:none">${m.phone}</a></div>
@@ -965,6 +977,7 @@ function render() {
           ${m.email?`<a href="mailto:${m.email}" class="member-card-email">✉️ ${m.email}</a>`:''}
         </div>
         ${reviewLinkHtml(m.googleReview, true)}
+        ${socialLinksHtml(m)}
         ${isAdmin?completionHtml(m):''}
         ${claimBtnHtml(m)}
       </div>
