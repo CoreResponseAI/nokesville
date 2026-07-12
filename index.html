@@ -410,6 +410,7 @@
       <div class="tab" id="tab-announcements" onclick="showTab('announcements')">📣 Announcements</div>
       <div class="tab" id="tab-events" onclick="showTab('events')">🎉 Events <span id="eventsPendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">!</span></div>
       <div class="tab" id="tab-claims" onclick="showTab('claims')">📋 Pending Updates <span id="claimsPendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">!</span></div>
+      <div class="tab" id="tab-analytics" onclick="showTab('analytics')">📊 Analytics</div>
     </div>
   </div>
 
@@ -535,6 +536,15 @@
     <div class="events-wrap">
       <div class="events-section-title">📋 Pending Profile Updates</div>
       <div id="pendingUpdatesFeed"></div>
+    </div>
+  </div>
+
+  <!-- PLATFORM ANALYTICS (admin only) -->
+  <div id="view-analytics" style="display:none">
+    <div class="events-wrap" style="max-width:1000px">
+      <div class="events-section-title">📊 Platform Analytics</div>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Tracking anonymous session activity — individual member logins don't exist yet, so this reflects unique devices/browsers, not named members.</p>
+      <div id="analyticsWrap"></div>
     </div>
   </div>
 
@@ -850,7 +860,7 @@ function applyAccessLevel() {
   const hide = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'none'; };
   if (!isAdmin) {
     hide('exportBtn'); hide('copyEmailsBtn'); hide('addVisitorBtn'); hide('addMemberBtn');
-    hide('tab-visitors'); hide('tab-attendance'); hide('saveAttBtn'); hide('sort-renewal'); hide('tab-claims');
+    hide('tab-visitors'); hide('tab-attendance'); hide('saveAttBtn'); hide('sort-renewal'); hide('tab-claims'); hide('tab-analytics');
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#eef2ff;border-bottom:2px solid #6b7fd4;padding:8px 28px;text-align:center;font-size:13px;color:#1a2b6b;font-weight:600;';
     banner.textContent = '👥 Member View — Contact NBA admin to make changes';
@@ -866,11 +876,12 @@ function showToast(msg) {
 }
 
 function showTab(tab) {
-  ['members','visitors','attendance','announcements','events','claims'].forEach(t => {
+  ['members','visitors','attendance','announcements','events','claims','analytics'].forEach(t => {
     document.getElementById('view-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('tab-'+t).className = 'tab' + (t === tab ? ' active' : '');
   });
   if (tab === 'events') logActivity('event_view');
+  if (tab === 'analytics') renderAnalytics();
 }
 
 function daysUntil(dateStr) {
@@ -1509,6 +1520,128 @@ async function rejectPendingUpdate(pendingId) {
   await loadAll();
   renderPendingUpdates();
   showToast('🗑️ Profile update rejected');
+}
+
+// ── PLATFORM ANALYTICS (admin only) ────────────────────────────
+let activityLog = [];
+
+async function loadActivityLog() {
+  const { data } = await sb.from('nokesville_activity_log')
+    .select('*')
+    .order('created_at', { ascending: true });
+  activityLog = data || [];
+}
+
+function monthKey(dateStr) {
+  const d = new Date(dateStr);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function last6MonthKeys() {
+  const keys = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    keys.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+  return keys;
+}
+
+function monthLabel(key) {
+  const [y, m] = key.split('-');
+  return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short' });
+}
+
+function computeMonthlyMetric(filterFn) {
+  const months = last6MonthKeys();
+  const counts = {};
+  months.forEach(k => counts[k] = 0);
+  activityLog.forEach(row => {
+    const k = monthKey(row.created_at);
+    if (counts.hasOwnProperty(k) && filterFn(row)) counts[k]++;
+  });
+  return months.map(k => ({ key: k, label: monthLabel(k), value: counts[k] }));
+}
+
+function computeMonthlyUniqueSessions() {
+  const months = last6MonthKeys();
+  const sets = {};
+  months.forEach(k => sets[k] = new Set());
+  activityLog.forEach(row => {
+    const k = monthKey(row.created_at);
+    if (sets[k] && row.session_id) sets[k].add(row.session_id);
+  });
+  return months.map(k => ({ key: k, label: monthLabel(k), value: sets[k].size }));
+}
+
+function trendArrow(series) {
+  if (series.length < 2) return '';
+  const cur = series[series.length - 1].value, prev = series[series.length - 2].value;
+  if (prev === 0 && cur === 0) return '<span style="color:var(--gray);font-size:12px;font-weight:700">— no change</span>';
+  const diff = cur - prev;
+  const pct = prev === 0 ? 100 : Math.round((diff / prev) * 100);
+  if (diff > 0) return `<span style="color:#059669;font-size:12px;font-weight:700">▲ ${pct}% vs last month</span>`;
+  if (diff < 0) return `<span style="color:#dc2626;font-size:12px;font-weight:700">▼ ${Math.abs(pct)}% vs last month</span>`;
+  return '<span style="color:var(--gray);font-size:12px;font-weight:700">— 0% vs last month</span>';
+}
+
+function miniBarChart(series, color) {
+  const max = Math.max(1, ...series.map(s => s.value));
+  return `<div style="display:flex;align-items:flex-end;gap:6px;height:60px;margin-top:12px">
+    ${series.map(s => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:100%;background:${color};border-radius:4px 4px 0 0;height:${Math.max(4, (s.value / max) * 44)}px" title="${s.label}: ${s.value}"></div>
+      <div style="font-size:9px;color:var(--gray);font-weight:600">${s.label}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+async function renderAnalytics() {
+  const wrap = document.getElementById('analyticsWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="empty">Loading analytics...</div>';
+  await loadActivityLog();
+
+  const mam = computeMonthlyUniqueSessions();
+  const views = computeMonthlyMetric(r => r.event_type === 'profile_view');
+  const clicks = computeMonthlyMetric(r => ['website_click', 'google_review_click'].includes(r.event_type));
+  const eventEng = computeMonthlyMetric(r => ['event_view', 'event_rsvp'].includes(r.event_type));
+  const completionAvg = members.length
+    ? Math.round(members.reduce((sum, m) => sum + profileCompletion(m).pct, 0) / members.length)
+    : 0;
+
+  wrap.innerHTML = `
+    <div class="stats-row" style="margin-top:0;padding:0">
+      <div class="stat-card">
+        <div class="stat-label">Monthly Active Members</div>
+        <div class="stat-value">${mam[mam.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(mam)}</div>
+        ${miniBarChart(mam, 'var(--navy)')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Profile Completion Rate</div>
+        <div class="stat-value">${completionAvg}%</div>
+        <div class="stat-sub">avg. across ${members.length} member${members.length === 1 ? '' : 's'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Profile Views</div>
+        <div class="stat-value">${views[views.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(views)}</div>
+        ${miniBarChart(views, 'var(--periwinkle)')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Website & Review Clicks</div>
+        <div class="stat-value">${clicks[clicks.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(clicks)}</div>
+        ${miniBarChart(clicks, 'var(--gold)')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Event Engagement</div>
+        <div class="stat-value">${eventEng[eventEng.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(eventEng)}</div>
+        ${miniBarChart(eventEng, 'var(--green)')}
+      </div>
+    </div>
+  `;
 }
 
 // ── MEMBER MODAL ──────────────────────────────────────────────
