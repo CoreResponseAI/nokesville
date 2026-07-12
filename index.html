@@ -727,6 +727,28 @@ let events = [];
 let pendingUpdates = [];
 let claimingMemberId = null;
 
+// ── ACTIVITY LOGGING (anonymous session — no individual member login exists yet) ──
+function getSessionId() {
+  let id = localStorage.getItem('nba_session_id');
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('nba_session_id', id);
+  }
+  return id;
+}
+
+async function logActivity(eventType, targetId) {
+  try {
+    await sb.from('nokesville_activity_log').insert({
+      session_id: getSessionId(),
+      event_type: eventType,
+      target_id: targetId || null
+    });
+  } catch (err) {
+    console.error('Activity log error:', err);
+  }
+}
+
 // ── LOAD DATA FROM SUPABASE ───────────────────────────────────
 async function loadAll() {
   const [m, v, mt, a, e, pu] = await Promise.all([
@@ -812,6 +834,7 @@ async function launchApp() {
   document.getElementById('app').style.display = 'block';
   await loadAll();
   applyAccessLevel();
+  logActivity('login');
   document.getElementById('meetingHeader').textContent = 'Every 2nd Thursday · 9:30 AM · Vita Nova';
   if (isAdmin) {
     const renewalBtn = document.getElementById('sort-renewal');
@@ -847,6 +870,7 @@ function showTab(tab) {
     document.getElementById('view-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('tab-'+t).className = 'tab' + (t === tab ? ' active' : '');
   });
+  if (tab === 'events') logActivity('event_view');
 }
 
 function daysUntil(dateStr) {
@@ -892,10 +916,10 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
 
-function reviewLinkHtml(url, small) {
+function reviewLinkHtml(url, memberId, small) {
   if (!url) return '';
   const size = small ? 'font-size:12px;padding:3px 8px;' : 'font-size:12px;padding:4px 10px;';
-  return `<a href="${url}" target="_blank" style="display:inline-block;margin-top:4px;${size}background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:20px;text-decoration:none;font-weight:700">⭐ Leave a Review</a>`;
+  return `<a href="${url}" target="_blank" onclick="logActivity('google_review_click', ${memberId})" style="display:inline-block;margin-top:4px;${size}background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:20px;text-decoration:none;font-weight:700">⭐ Leave a Review</a>`;
 }
 
 // Real brand icon glyphs (standard open-license icon paths), not emoji.
@@ -915,10 +939,10 @@ function socialIconSvg(type, size) {
 // it's collected for internal/admin use only and not shown on member-facing cards.
 function socialLinksHtml(m) {
   const links = [];
-  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link">${socialIconSvg('facebook', 18)}</a>`);
-  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link">${socialIconSvg('instagram', 18)}</a>`);
-  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link">${socialIconSvg('linkedin', 18)}</a>`);
-  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link">${socialIconSvg('youtube', 18)}</a>`);
+  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link" onclick="logActivity('facebook_click', ${m.id})">${socialIconSvg('facebook', 18)}</a>`);
+  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link" onclick="logActivity('instagram_click', ${m.id})">${socialIconSvg('instagram', 18)}</a>`);
+  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link" onclick="logActivity('linkedin_click', ${m.id})">${socialIconSvg('linkedin', 18)}</a>`);
+  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link" onclick="logActivity('youtube_click', ${m.id})">${socialIconSvg('youtube', 18)}</a>`);
   if (links.length === 0) return '';
   return `<div style="display:flex;gap:6px;margin-top:6px">${links.join('')}</div>`;
 }
@@ -994,7 +1018,7 @@ function render() {
     ? '<div class="empty">No members found</div>'
     : filtered.map(m => `
     <div class="table-row ${isAdmin ? '' : 'member-view'}">
-      <div><div class="biz-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa">${m.website}</div>`:''}${reviewLinkHtml(m.googleReview)}${socialLinksHtml(m)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
+      <div><div class="biz-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa"><a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})" style="color:inherit">${m.website}</a></div>`:''}${reviewLinkHtml(m.googleReview, m.id)}${socialLinksHtml(m)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
       <div><span class="seat-badge">${m.seat}</span></div>
       ${isAdmin ? `<div>${renewalBadge(m.renewal)}</div><div>${daysLeftBadge(m.renewal)}</div>` : ''}
       <div style="font-size:13px;color:var(--gray)"><a href="tel:${m.phone}" style="color:inherit;text-decoration:none">${m.phone}</a></div>
@@ -1009,12 +1033,12 @@ function render() {
       <div>
         <div class="member-card-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div>
         <div class="member-card-contact">${m.contact}</div>
-        ${m.website?`<div class="member-card-website">${m.website}</div>`:''}
+        ${m.website?`<div class="member-card-website"><a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})" style="color:inherit">${m.website}</a></div>`:''}
         <div class="member-card-links" style="margin-top:8px">
           ${m.phone?`<a href="tel:${m.phone}" class="member-card-phone">📞 ${m.phone}</a>`:''}
           ${m.email?`<a href="mailto:${m.email}" class="member-card-email">✉️ ${m.email}</a>`:''}
         </div>
-        ${reviewLinkHtml(m.googleReview, true)}
+        ${reviewLinkHtml(m.googleReview, m.id, true)}
         ${socialLinksHtml(m)}
         ${isAdmin?completionHtml(m):''}
         ${claimBtnHtml(m)}
@@ -1240,7 +1264,7 @@ function renderEventCard(e, isPending=false, isPast=false) {
     <div class="event-card-footer">
       <div class="event-posted-by">Posted by ${e.poster}</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        ${e.rsvp?`<a href="${e.rsvp}" target="_blank" class="event-rsvp-btn">RSVP →</a>`:''}
+        ${e.rsvp?`<a href="${e.rsvp}" target="_blank" class="event-rsvp-btn" onclick="logActivity('event_rsvp', ${e.id})">RSVP →</a>`:''}
         ${isPending&&isAdmin?`<div class="event-admin-btns"><button class="event-approve-btn" onclick="approveEvent(${e.id})">✓ Approve</button><button class="event-deny-btn" onclick="denyEvent(${e.id})">✗ Deny</button></div>`:''}
         ${!isPending&&isAdmin?`<button class="event-delete-btn" onclick="deleteEvent(${e.id})">🗑️ Delete</button>`:''}
       </div>
@@ -1290,6 +1314,7 @@ async function saveEvent() {
 function openProfileView(id) {
   const m = members.find(x => x.id === id);
   if (!m) return;
+  logActivity('profile_view', id);
   const cats = [m.categoryPrimary || m.seat, m.categorySecondary].filter(Boolean);
   const social = socialLinksHtmlLarge(m);
   document.getElementById('profileViewBody').innerHTML = `
@@ -1307,7 +1332,7 @@ function openProfileView(id) {
       ${m.contact?`<div class="profile-view-row">👤 ${m.contact}</div>`:''}
       ${m.phone?`<div class="profile-view-row">📞 <a href="tel:${m.phone}">${m.phone}</a></div>`:''}
       ${m.email?`<div class="profile-view-row">✉️ <a href="mailto:${m.email}">${m.email}</a></div>`:''}
-      ${m.website?`<div class="profile-view-row">🌐 <a href="${m.website}" target="_blank">${m.website}</a></div>`:''}
+      ${m.website?`<div class="profile-view-row">🌐 <a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})">${m.website}</a></div>`:''}
       ${m.address?`<div class="profile-view-row">📍 ${m.address}</div>`:''}
     </div>
     ${(m.offer||m.looking) ? `<div class="profile-view-section">
@@ -1317,7 +1342,7 @@ function openProfileView(id) {
     ${(social || m.googleReview) ? `<div class="profile-view-section">
       <div class="section-label">Connect</div>
       ${social}
-      ${reviewLinkHtml(m.googleReview)}
+      ${reviewLinkHtml(m.googleReview, m.id)}
     </div>` : ''}
     <button class="claim-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="closeProfileView();openClaimModal(${m.id})">📋 Claim or Update This Business Profile</button>
   `;
@@ -1330,10 +1355,10 @@ function closeProfileView() {
 
 function socialLinksHtmlLarge(m) {
   const links = [];
-  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link">${socialIconSvg('facebook', 24)}</a>`);
-  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link">${socialIconSvg('instagram', 24)}</a>`);
-  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link">${socialIconSvg('linkedin', 24)}</a>`);
-  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link">${socialIconSvg('youtube', 24)}</a>`);
+  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link" onclick="logActivity('facebook_click', ${m.id})">${socialIconSvg('facebook', 24)}</a>`);
+  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link" onclick="logActivity('instagram_click', ${m.id})">${socialIconSvg('instagram', 24)}</a>`);
+  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link" onclick="logActivity('linkedin_click', ${m.id})">${socialIconSvg('linkedin', 24)}</a>`);
+  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link" onclick="logActivity('youtube_click', ${m.id})">${socialIconSvg('youtube', 24)}</a>`);
   if (links.length === 0) return '';
   return `<div class="profile-view-social-row">${links.join('')}</div>`;
 }
