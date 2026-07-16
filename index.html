@@ -426,6 +426,7 @@
       <div class="tab" id="tab-announcements" onclick="showTab('announcements')">📣 Announcements</div>
       <div class="tab" id="tab-events" onclick="showTab('events')">🎉 Events <span id="eventsPendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">!</span></div>
       <div class="tab" id="tab-claims" onclick="showTab('claims')">📋 Pending Updates <span id="claimsPendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px">!</span></div>
+      <div class="tab" id="tab-analytics" onclick="showTab('analytics')">📊 Analytics</div>
     </div>
   </div>
 
@@ -554,6 +555,15 @@
     <div class="events-wrap">
       <div class="events-section-title">📋 Pending Profile Updates</div>
       <div id="pendingUpdatesFeed"></div>
+    </div>
+  </div>
+
+  <!-- PLATFORM ANALYTICS (admin only) -->
+  <div id="view-analytics" style="display:none">
+    <div class="events-wrap" style="max-width:1000px">
+      <div class="events-section-title">📊 Platform Analytics</div>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Tracking anonymous session activity — individual member logins don't exist yet, so this reflects unique devices/browsers, not named members.</p>
+      <div id="analyticsWrap"></div>
     </div>
   </div>
 
@@ -877,6 +887,7 @@ async function launchApp() {
   document.getElementById('app').style.display = 'block';
   await loadAll();
   applyAccessLevel();
+  logActivity('login');
   document.getElementById('meetingHeader').textContent = 'Every 2nd Thursday · 9:30 AM · Vita Nova';
   if (isAdmin) {
     const renewalBtn = document.getElementById('sort-renewal');
@@ -892,7 +903,7 @@ function applyAccessLevel() {
   const hide = (id) => { const el = document.getElementById(id); if(el) el.style.display = 'none'; };
   if (!isAdmin) {
     hide('exportBtn'); hide('copyEmailsBtn'); hide('addVisitorBtn'); hide('addMemberBtn');
-    hide('tab-visitors'); hide('tab-attendance'); hide('saveAttBtn'); hide('sort-renewal'); hide('tab-claims');
+    hide('tab-visitors'); hide('tab-attendance'); hide('saveAttBtn'); hide('sort-renewal'); hide('tab-claims'); hide('tab-analytics');
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#eef2ff;border-bottom:2px solid #6b7fd4;padding:8px 28px;text-align:center;font-size:13px;color:#1a2b6b;font-weight:600;';
     banner.textContent = '👥 Member View — Contact NBA admin to make changes';
@@ -908,10 +919,12 @@ function showToast(msg) {
 }
 
 function showTab(tab) {
-  ['members','visitors','attendance','announcements','events','claims'].forEach(t => {
+  ['members','visitors','attendance','announcements','events','claims','analytics'].forEach(t => {
     document.getElementById('view-'+t).style.display = t === tab ? 'block' : 'none';
     document.getElementById('tab-'+t).className = 'tab' + (t === tab ? ' active' : '');
   });
+  if (tab === 'events') logActivity('event_view');
+  if (tab === 'analytics') renderAnalytics();
 }
 
 function daysUntil(dateStr) {
@@ -957,10 +970,32 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
 
-function reviewLinkHtml(url, small) {
+// ── ACTIVITY LOGGING (anonymous session — no individual member login exists yet) ──
+function getSessionId() {
+  let id = localStorage.getItem('nokesville_session_id');
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('nokesville_session_id', id);
+  }
+  return id;
+}
+
+async function logActivity(eventType, targetId) {
+  try {
+    await sb.from('nokesville_activity_log').insert({
+      session_id: getSessionId(),
+      event_type: eventType,
+      target_id: targetId || null
+    });
+  } catch (err) {
+    console.error('Activity log error:', err);
+  }
+}
+
+function reviewLinkHtml(url, memberId, small) {
   if (!url) return '';
   const size = small ? 'font-size:12px;padding:3px 8px;' : 'font-size:12px;padding:4px 10px;';
-  return `<a href="${url}" target="_blank" style="display:inline-block;margin-top:4px;${size}background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:20px;text-decoration:none;font-weight:700">⭐ Leave a Review</a>`;
+  return `<a href="${url}" target="_blank" onclick="logActivity('google_review_click', ${memberId})" style="display:inline-block;margin-top:4px;${size}background:#fffbeb;color:#d97706;border:1px solid #fcd34d;border-radius:20px;text-decoration:none;font-weight:700">⭐ Leave a Review</a>`;
 }
 
 // Real brand icon glyphs (standard open-license icon paths), not emoji.
@@ -980,10 +1015,10 @@ function socialIconSvg(type, size) {
 // it's collected for internal/admin use only and not shown on member-facing cards.
 function socialLinksHtml(m) {
   const links = [];
-  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link">${socialIconSvg('facebook', 18)}</a>`);
-  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link">${socialIconSvg('instagram', 18)}</a>`);
-  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link">${socialIconSvg('linkedin', 18)}</a>`);
-  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link">${socialIconSvg('youtube', 18)}</a>`);
+  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link" onclick="logActivity('facebook_click', ${m.id})">${socialIconSvg('facebook', 18)}</a>`);
+  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link" onclick="logActivity('instagram_click', ${m.id})">${socialIconSvg('instagram', 18)}</a>`);
+  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link" onclick="logActivity('linkedin_click', ${m.id})">${socialIconSvg('linkedin', 18)}</a>`);
+  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link" onclick="logActivity('youtube_click', ${m.id})">${socialIconSvg('youtube', 18)}</a>`);
   if (links.length === 0) return '';
   return `<div style="display:flex;gap:6px;margin-top:6px">${links.join('')}</div>`;
 }
@@ -1168,7 +1203,7 @@ function render() {
     ? '<div class="empty">No members found</div>'
     : filtered.map(m => `
     <div class="table-row ${isAdmin ? '' : 'member-view'}">
-      <div><div class="biz-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa">${m.website}</div>`:''}${reviewLinkHtml(m.googleReview)}${socialLinksHtml(m)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
+      <div><div class="biz-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa"><a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})" style="color:inherit">${m.website}</a></div>`:''}${reviewLinkHtml(m.googleReview, m.id)}${socialLinksHtml(m)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
       <div><span class="seat-badge">${m.seat}</span></div>
       ${isAdmin ? `<div>${renewalBadge(m.renewal)}</div><div>${daysLeftBadge(m.renewal)}</div>` : ''}
       <div style="font-size:13px;color:var(--gray)"><a href="tel:${m.phone}" style="color:inherit;text-decoration:none">${m.phone}</a></div>
@@ -1183,12 +1218,12 @@ function render() {
       <div>
         <div class="member-card-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div>
         <div class="member-card-contact">${m.contact}</div>
-        ${m.website?`<div class="member-card-website">${m.website}</div>`:''}
+        ${m.website?`<div class="member-card-website"><a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})" style="color:inherit">${m.website}</a></div>`:''}
         <div class="member-card-links" style="margin-top:8px">
           ${m.phone?`<a href="tel:${m.phone}" class="member-card-phone">📞 ${m.phone}</a>`:''}
           ${m.email?`<a href="mailto:${m.email}" class="member-card-email">✉️ ${m.email}</a>`:''}
         </div>
-        ${reviewLinkHtml(m.googleReview, true)}
+        ${reviewLinkHtml(m.googleReview, m.id, true)}
         ${socialLinksHtml(m)}
         ${isAdmin?completionHtml(m):''}
         ${claimBtnHtml(m)}
@@ -1414,7 +1449,7 @@ function renderEventCard(e, isPending=false, isPast=false) {
     <div class="event-card-footer">
       <div class="event-posted-by">Posted by ${e.poster}</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        ${e.rsvp?`<a href="${e.rsvp}" target="_blank" class="event-rsvp-btn">RSVP →</a>`:''}
+        ${e.rsvp?`<a href="${e.rsvp}" target="_blank" class="event-rsvp-btn" onclick="logActivity('event_rsvp', ${e.id})">RSVP →</a>`:''}
         ${isPending&&isAdmin?`<div class="event-admin-btns"><button class="event-approve-btn" onclick="approveEvent(${e.id})">✓ Approve</button><button class="event-deny-btn" onclick="denyEvent(${e.id})">✗ Deny</button></div>`:''}
         ${!isPending&&isAdmin?`<button class="event-delete-btn" onclick="deleteEvent(${e.id})">🗑️ Delete</button>`:''}
       </div>
@@ -1464,6 +1499,7 @@ async function saveEvent() {
 function openProfileView(id) {
   const m = members.find(x => x.id === id);
   if (!m) return;
+  logActivity('profile_view', id);
   const cats = [m.categoryPrimary || m.seat, m.categorySecondary].filter(Boolean);
   const social = socialLinksHtmlLarge(m);
   document.getElementById('profileViewBody').innerHTML = `
@@ -1481,7 +1517,7 @@ function openProfileView(id) {
       ${m.contact?`<div class="profile-view-row">👤 ${m.contact}</div>`:''}
       ${m.phone?`<div class="profile-view-row">📞 <a href="tel:${m.phone}">${m.phone}</a></div>`:''}
       ${m.email?`<div class="profile-view-row">✉️ <a href="mailto:${m.email}">${m.email}</a></div>`:''}
-      ${m.website?`<div class="profile-view-row">🌐 <a href="${m.website}" target="_blank">${m.website}</a></div>`:''}
+      ${m.website?`<div class="profile-view-row">🌐 <a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})">${m.website}</a></div>`:''}
       ${m.address?`<div class="profile-view-row">📍 ${m.address}</div>`:''}
     </div>
     ${(m.offer||m.looking) ? `<div class="profile-view-section">
@@ -1499,7 +1535,7 @@ function openProfileView(id) {
     ${(social || m.googleReview) ? `<div class="profile-view-section">
       <div class="section-label">Connect</div>
       ${social}
-      ${reviewLinkHtml(m.googleReview)}
+      ${reviewLinkHtml(m.googleReview, m.id)}
     </div>` : ''}
     <button class="claim-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="closeProfileView();openClaimModal(${m.id})">📋 Claim or Update This Business Profile</button>
   `;
@@ -1512,10 +1548,10 @@ function closeProfileView() {
 
 function socialLinksHtmlLarge(m) {
   const links = [];
-  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link">${socialIconSvg('facebook', 24)}</a>`);
-  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link">${socialIconSvg('instagram', 24)}</a>`);
-  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link">${socialIconSvg('linkedin', 24)}</a>`);
-  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link">${socialIconSvg('youtube', 24)}</a>`);
+  if (m.facebook) links.push(`<a href="${m.facebook}" target="_blank" title="Facebook" class="social-icon-link" onclick="logActivity('facebook_click', ${m.id})">${socialIconSvg('facebook', 24)}</a>`);
+  if (m.instagram) links.push(`<a href="${m.instagram}" target="_blank" title="Instagram" class="social-icon-link" onclick="logActivity('instagram_click', ${m.id})">${socialIconSvg('instagram', 24)}</a>`);
+  if (m.linkedin) links.push(`<a href="${m.linkedin}" target="_blank" title="LinkedIn" class="social-icon-link" onclick="logActivity('linkedin_click', ${m.id})">${socialIconSvg('linkedin', 24)}</a>`);
+  if (m.youtube) links.push(`<a href="${m.youtube}" target="_blank" title="YouTube" class="social-icon-link" onclick="logActivity('youtube_click', ${m.id})">${socialIconSvg('youtube', 24)}</a>`);
   if (links.length === 0) return '';
   return `<div class="profile-view-social-row">${links.join('')}</div>`;
 }
@@ -1698,6 +1734,128 @@ async function rejectPendingUpdate(pendingId) {
   await loadAll();
   renderPendingUpdates();
   showToast('🗑️ Profile update rejected');
+}
+
+// ── PLATFORM ANALYTICS (admin only) ────────────────────────────
+let activityLog = [];
+
+async function loadActivityLog() {
+  const { data } = await sb.from('nokesville_activity_log')
+    .select('*')
+    .order('created_at', { ascending: true });
+  activityLog = data || [];
+}
+
+function monthKey(dateStr) {
+  const d = new Date(dateStr);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function last6MonthKeys() {
+  const keys = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    keys.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+  return keys;
+}
+
+function monthLabel(key) {
+  const [y, m] = key.split('-');
+  return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short' });
+}
+
+function computeMonthlyMetric(filterFn) {
+  const months = last6MonthKeys();
+  const counts = {};
+  months.forEach(k => counts[k] = 0);
+  activityLog.forEach(row => {
+    const k = monthKey(row.created_at);
+    if (counts.hasOwnProperty(k) && filterFn(row)) counts[k]++;
+  });
+  return months.map(k => ({ key: k, label: monthLabel(k), value: counts[k] }));
+}
+
+function computeMonthlyUniqueSessions() {
+  const months = last6MonthKeys();
+  const sets = {};
+  months.forEach(k => sets[k] = new Set());
+  activityLog.forEach(row => {
+    const k = monthKey(row.created_at);
+    if (sets[k] && row.session_id) sets[k].add(row.session_id);
+  });
+  return months.map(k => ({ key: k, label: monthLabel(k), value: sets[k].size }));
+}
+
+function trendArrow(series) {
+  if (series.length < 2) return '';
+  const cur = series[series.length - 1].value, prev = series[series.length - 2].value;
+  if (prev === 0 && cur === 0) return '<span style="color:var(--gray);font-size:12px;font-weight:700">— no change</span>';
+  const diff = cur - prev;
+  const pct = prev === 0 ? 100 : Math.round((diff / prev) * 100);
+  if (diff > 0) return `<span style="color:#059669;font-size:12px;font-weight:700">▲ ${pct}% vs last month</span>`;
+  if (diff < 0) return `<span style="color:#dc2626;font-size:12px;font-weight:700">▼ ${Math.abs(pct)}% vs last month</span>`;
+  return '<span style="color:var(--gray);font-size:12px;font-weight:700">— 0% vs last month</span>';
+}
+
+function miniBarChart(series, color) {
+  const max = Math.max(1, ...series.map(s => s.value));
+  return `<div style="display:flex;align-items:flex-end;gap:6px;height:60px;margin-top:12px">
+    ${series.map(s => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:100%;background:${color};border-radius:4px 4px 0 0;height:${Math.max(4, (s.value / max) * 44)}px" title="${s.label}: ${s.value}"></div>
+      <div style="font-size:9px;color:var(--gray);font-weight:600">${s.label}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+async function renderAnalytics() {
+  const wrap = document.getElementById('analyticsWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="empty">Loading analytics...</div>';
+  await loadActivityLog();
+
+  const mam = computeMonthlyUniqueSessions();
+  const views = computeMonthlyMetric(r => r.event_type === 'profile_view');
+  const clicks = computeMonthlyMetric(r => ['website_click', 'google_review_click'].includes(r.event_type));
+  const eventEng = computeMonthlyMetric(r => ['event_view', 'event_rsvp'].includes(r.event_type));
+  const completionAvg = members.length
+    ? Math.round(members.reduce((sum, m) => sum + profileCompletion(m).pct, 0) / members.length)
+    : 0;
+
+  wrap.innerHTML = `
+    <div class="stats-row" style="margin-top:0;padding:0">
+      <div class="stat-card">
+        <div class="stat-label">Monthly Active Members</div>
+        <div class="stat-value">${mam[mam.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(mam)}</div>
+        ${miniBarChart(mam, 'var(--navy)')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Profile Completion Rate</div>
+        <div class="stat-value">${completionAvg}%</div>
+        <div class="stat-sub">avg. across ${members.length} member${members.length === 1 ? '' : 's'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Profile Views</div>
+        <div class="stat-value">${views[views.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(views)}</div>
+        ${miniBarChart(views, 'var(--periwinkle)')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Website & Review Clicks</div>
+        <div class="stat-value">${clicks[clicks.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(clicks)}</div>
+        ${miniBarChart(clicks, 'var(--gold)')}
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Event Engagement</div>
+        <div class="stat-value">${eventEng[eventEng.length - 1].value}</div>
+        <div class="stat-sub">${trendArrow(eventEng)}</div>
+        ${miniBarChart(eventEng, 'var(--green)')}
+      </div>
+    </div>
+  `;
 }
 
 // ── MEMBER MODAL ──────────────────────────────────────────────
