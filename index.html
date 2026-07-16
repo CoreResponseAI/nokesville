@@ -692,6 +692,11 @@
     </p>
     <div class="section-label">Business Info</div>
     <div class="field"><label>Contact Person</label><input id="c-contact-person" /></div>
+    <div class="field-row">
+      <div class="field"><label>Phone</label><input id="c-phone" placeholder="(555) 555-5555" /></div>
+      <div class="field"><label>Email</label><input id="c-email" placeholder="you@business.com" /></div>
+    </div>
+    <div class="field"><label>Website</label><input id="c-website" placeholder="https://..." /></div>
     <div class="field"><label>Business Description</label><textarea id="c-description" placeholder="A short description of what your business does"></textarea></div>
     <div class="field-row">
       <div class="field"><label>Primary Category</label><input id="c-category-primary" placeholder="e.g. Real Estate" /></div>
@@ -1522,6 +1527,9 @@ function openClaimModal(id) {
   if (!m) return;
   document.getElementById('claimBizName').textContent = m.biz;
   document.getElementById('c-contact-person').value = m.contactPerson || '';
+  document.getElementById('c-phone').value = m.phone || '';
+  document.getElementById('c-email').value = m.email || '';
+  document.getElementById('c-website').value = m.website || '';
   document.getElementById('c-description').value = m.description || '';
   document.getElementById('c-category-primary').value = m.categoryPrimary || m.seat || '';
   document.getElementById('c-category-secondary').value = m.categorySecondary || '';
@@ -1553,6 +1561,9 @@ async function submitClaim() {
   }
   const submitted = {
     contact_person: document.getElementById('c-contact-person').value.trim(),
+    phone: document.getElementById('c-phone').value.trim(),
+    email: document.getElementById('c-email').value.trim(),
+    website: document.getElementById('c-website').value.trim(),
     description: document.getElementById('c-description').value.trim(),
     category_primary: document.getElementById('c-category-primary').value.trim(),
     category_secondary: document.getElementById('c-category-secondary').value.trim(),
@@ -1583,7 +1594,7 @@ async function submitClaim() {
 
 // ── ADMIN: PENDING PROFILE UPDATES ────────────────────────────
 const PENDING_FIELD_LABELS = {
-  contact_person: 'Contact Person', description: 'Business Description',
+  contact_person: 'Contact Person', phone: 'Phone', email: 'Email', website: 'Website', description: 'Business Description',
   category_primary: 'Primary Category', category_secondary: 'Secondary Category',
   address: 'Business Address', facebook: 'Facebook', instagram: 'Instagram',
   linkedin: 'LinkedIn', youtube: 'YouTube', google_business_url: 'Google Business Profile',
@@ -1592,7 +1603,7 @@ const PENDING_FIELD_LABELS = {
 };
 
 const MEMBER_FIELD_MAP = {
-  contact_person: 'contactPerson', description: 'description',
+  contact_person: 'contactPerson', phone: 'phone', email: 'email', website: 'website', description: 'description',
   category_primary: 'categoryPrimary', category_secondary: 'categorySecondary',
   address: 'address', facebook: 'facebook', instagram: 'instagram',
   linkedin: 'linkedin', youtube: 'youtube', google_business_url: 'googleBusinessUrl',
