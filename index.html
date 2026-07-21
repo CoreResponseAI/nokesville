@@ -220,10 +220,10 @@
 
     .biz-name-link { cursor: pointer; text-decoration: none; color: inherit; }
     .biz-name-link:hover { text-decoration: underline; color: var(--periwinkle); }
-    .profile-view-header { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
-    .profile-view-logo { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--border); flex-shrink: 0; }
+    .profile-view-header { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; text-align: center; }
+    .profile-view-logo { width: 100%; max-width: 220px; height: 140px; border-radius: 12px; object-fit: contain; background: #fff; padding: 10px; border: 1.5px solid var(--border); flex-shrink: 0; }
     .profile-view-name { font-size: 19px; font-weight: 800; color: var(--dark); }
-    .profile-view-cats { margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .profile-view-cats { margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
     .profile-view-featured { width: 100%; border-radius: 12px; margin-bottom: 14px; max-height: 200px; object-fit: cover; }
     .profile-view-section { margin-bottom: 14px; }
     .profile-view-section .section-label { margin: 0 0 8px; }
@@ -375,9 +375,7 @@
 <!-- GATE -->
 <div class="gate" id="gate" style="display:none">
   <div class="gate-hero">
-    <video class="gate-video" autoplay muted loop playsinline>
-      <source src="https://videos.pexels.com/video-files/11645112/11645112-uhd_2560_1440_24fps.mp4" type="video/mp4" />
-    </video>
+    <img class="gate-video" src="https://images.pexels.com/photos/3183183/pexels-photo-3183183.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" />
     <div class="gate-overlay"></div>
     <div class="gate-hero-content">
       <img src="https://i.imgur.com/LpBodPi.png" alt="CORE AI" class="gate-hero-logo" />
