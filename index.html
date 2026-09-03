@@ -220,10 +220,10 @@
 
     .biz-name-link { cursor: pointer; text-decoration: none; color: inherit; }
     .biz-name-link:hover { text-decoration: underline; color: var(--periwinkle); }
-    .profile-view-header { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; text-align: center; }
-    .profile-view-logo { width: 100%; max-width: 220px; height: 140px; border-radius: 12px; object-fit: contain; background: #fff; padding: 10px; border: 1.5px solid var(--border); flex-shrink: 0; }
+    .profile-view-header { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+    .profile-view-logo { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--border); flex-shrink: 0; }
     .profile-view-name { font-size: 19px; font-weight: 800; color: var(--dark); }
-    .profile-view-cats { margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .profile-view-cats { margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; }
     .profile-view-featured { width: 100%; border-radius: 12px; margin-bottom: 14px; max-height: 200px; object-fit: cover; }
     .profile-view-section { margin-bottom: 14px; }
     .profile-view-section .section-label { margin: 0 0 8px; }
@@ -260,22 +260,6 @@
     .pending-admin-btns { display: flex; gap: 8px; }
     .pending-empty { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
 
-    /* TAG SELECTOR (Strategic Partnerships / Referral Opportunities) */
-    .tag-help { font-size: 11px; color: var(--gray); margin-bottom: 6px; line-height: 1.4; }
-    .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-    .tag-chip { display: inline-flex; align-items: center; gap: 6px; background: #eef2ff; color: var(--navy); border: 1px solid #c7d2fe; border-radius: 20px; padding: 4px 8px 4px 12px; font-size: 12px; font-weight: 600; }
-    .tag-chip-remove { background: none; border: none; color: var(--navy); cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; opacity: 0.55; font-family: inherit; }
-    .tag-chip-remove:hover { opacity: 1; }
-    .tag-input-wrap { position: relative; }
-    .tag-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1.5px solid var(--border); border-radius: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 50; }
-    .tag-suggestions.open { display: block; }
-    .tag-suggestion-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--dark); }
-    .tag-suggestion-item:hover { background: var(--light); }
-    .tag-suggestion-item.custom { color: var(--periwinkle); font-weight: 600; border-top: 1px solid var(--border); }
-    .tag-list { list-style: none; padding: 0; margin: 0; }
-    .tag-list li { font-size: 13px; color: var(--dark); padding: 3px 0 3px 16px; position: relative; }
-    .tag-list li::before { content: "•"; position: absolute; left: 0; color: var(--periwinkle); font-weight: 700; }
-
     /* MODAL */
     .overlay, .event-modal-overlay { display: none; position: fixed; inset: 0; background: #00000066; z-index: 100; align-items: center; justify-content: center; padding: 16px; }
     .overlay.open, .event-modal-overlay.open { display: flex; }
@@ -310,7 +294,7 @@
     .checkin-grid { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
     .checkin-card { background: var(--white); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; border: 2.5px solid transparent; transition: all .15s; box-shadow: 0 2px 8px #0002; }
     .checkin-card:hover { border-color: var(--periwinkle); transform: translateY(-1px); }
-    .checkin-card.checked-in { background: #ecfdf5; border-color: #10b981; }
+    .checkin-card.checked-in { background: #ecfdf5; border-color: #10b981; cursor: default; }
     .checkin-card.checked-in .checkin-name { color: #059669; }
     .checkin-name { font-size: 16px; font-weight: 700; color: var(--dark); }
     .checkin-biz { font-size: 13px; color: var(--gray); margin-top: 2px; }
@@ -375,7 +359,9 @@
 <!-- GATE -->
 <div class="gate" id="gate" style="display:none">
   <div class="gate-hero">
-    <img class="gate-video" src="https://images.pexels.com/photos/3183183/pexels-photo-3183183.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="" />
+    <video class="gate-video" autoplay muted loop playsinline>
+      <source src="https://videos.pexels.com/video-files/11645112/11645112-uhd_2560_1440_24fps.mp4" type="video/mp4" />
+    </video>
     <div class="gate-overlay"></div>
     <div class="gate-hero-content">
       <img src="https://i.imgur.com/LpBodPi.png" alt="CORE AI" class="gate-hero-logo" />
@@ -438,9 +424,6 @@
         <option value="All">All Statuses</option>
         <option>Active</option>
         <option>Inactive</option>
-      </select>
-      <select class="filter-select" id="tagFilter" onchange="render()">
-        <option value="">All Partnership/Referral Tags</option>
       </select>
     </div>
     <div class="sort-controls">
@@ -599,24 +582,6 @@
     <div class="field"><label>Member Since</label><input type="date" id="f-since" /></div>
     <div class="field"><label>What They Offer</label><input id="f-offer" /></div>
     <div class="field"><label>Looking For</label><input id="f-looking" /></div>
-    <div class="section-label">Strategic Partnerships</div>
-    <div class="field">
-      <div class="tag-help">Businesses or industries that would make great strategic partners for this business.</div>
-      <div class="tag-chips" id="f-partnerships-chips"></div>
-      <div class="tag-input-wrap">
-        <input type="text" id="f-partnerships-input" placeholder="Type to search or add..." autocomplete="off" />
-        <div class="tag-suggestions" id="f-partnerships-suggestions"></div>
-      </div>
-    </div>
-    <div class="section-label">Referral Opportunities</div>
-    <div class="field">
-      <div class="tag-help">Businesses or industries that are great referral sources for this business.</div>
-      <div class="tag-chips" id="f-referrals-chips"></div>
-      <div class="tag-input-wrap">
-        <input type="text" id="f-referrals-input" placeholder="Type to search or add..." autocomplete="off" />
-        <div class="tag-suggestions" id="f-referrals-suggestions"></div>
-      </div>
-    </div>
     <div class="field"><label>Notes</label><textarea id="f-notes"></textarea></div>
     <div class="modal-btns">
       <button class="del" id="deleteBtn" style="display:none" onclick="deleteMember()">Delete</button>
@@ -700,39 +665,13 @@
     </p>
     <div class="section-label">Business Info</div>
     <div class="field"><label>Contact Person</label><input id="c-contact-person" /></div>
-    <div class="field-row">
-      <div class="field"><label>Phone</label><input id="c-phone" placeholder="(555) 555-5555" /></div>
-      <div class="field"><label>Email</label><input id="c-email" placeholder="you@business.com" /></div>
-    </div>
-    <div class="field"><label>Website</label><input id="c-website" placeholder="https://..." /></div>
+    <div class="field"><label>Email Address</label><input id="c-email" type="email" placeholder="you@yourbusiness.com" /></div>
     <div class="field"><label>Business Description</label><textarea id="c-description" placeholder="A short description of what your business does"></textarea></div>
     <div class="field-row">
       <div class="field"><label>Primary Category</label><input id="c-category-primary" placeholder="e.g. Real Estate" /></div>
       <div class="field"><label>Secondary Category</label><input id="c-category-secondary" /></div>
     </div>
     <div class="field"><label>Business Address</label><input id="c-address" /></div>
-
-    <div class="section-label">Strategic Partnerships</div>
-    <div class="field">
-      <label>What businesses or industries would make great strategic partners for your business?</label>
-      <div class="tag-help">Examples: Realtors, Mortgage Brokers, Insurance Agents, Property Managers, CPAs, Attorneys, Marketing Agencies, Contractors.</div>
-      <div class="tag-chips" id="c-partnerships-chips"></div>
-      <div class="tag-input-wrap">
-        <input type="text" id="c-partnerships-input" placeholder="Type to search or add..." autocomplete="off" />
-        <div class="tag-suggestions" id="c-partnerships-suggestions"></div>
-      </div>
-    </div>
-
-    <div class="section-label">Referral Opportunities</div>
-    <div class="field">
-      <label>What businesses or industries are great referral sources for your business?</label>
-      <div class="tag-help">List the businesses or industries that often send you qualified clients or where you have referral relationships.</div>
-      <div class="tag-chips" id="c-referrals-chips"></div>
-      <div class="tag-input-wrap">
-        <input type="text" id="c-referrals-input" placeholder="Type to search or add..." autocomplete="off" />
-        <div class="tag-suggestions" id="c-referrals-suggestions"></div>
-      </div>
-    </div>
 
     <div class="section-label">Social Media</div>
     <div class="field"><label>Facebook</label><input id="c-facebook" placeholder="https://facebook.com/..." /></div>
@@ -799,6 +738,28 @@ let events = [];
 let pendingUpdates = [];
 let claimingMemberId = null;
 
+// ── ACTIVITY LOGGING (anonymous session — no individual member login exists yet) ──
+function getSessionId() {
+  let id = localStorage.getItem('nba_session_id');
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('nba_session_id', id);
+  }
+  return id;
+}
+
+async function logActivity(eventType, targetId) {
+  try {
+    await sb.from('nokesville_activity_log').insert({
+      session_id: getSessionId(),
+      event_type: eventType,
+      target_id: targetId || null
+    });
+  } catch (err) {
+    console.error('Activity log error:', err);
+  }
+}
+
 // ── LOAD DATA FROM SUPABASE ───────────────────────────────────
 async function loadAll() {
   const [m, v, mt, a, e, pu] = await Promise.all([
@@ -820,8 +781,7 @@ async function loadAll() {
     facebook: r.facebook||'', instagram: r.instagram||'', linkedin: r.linkedin||'', youtube: r.youtube||'',
     googleBusinessUrl: r.google_business_url||'', address: r.address||'',
     logoUrl: r.logo_url||'', featuredImageUrl: r.featured_image_url||'',
-    consentContact: r.consent_contact||false, consentDate: r.consent_date||'',
-    strategicPartnerships: r.strategic_partnerships||[], referralOpportunities: r.referral_opportunities||[]
+    consentContact: r.consent_contact||false, consentDate: r.consent_date||''
   }));
   pendingUpdates = (pu.data || []).map(r => ({
     id: r.id, memberId: r.member_id, submitted: r.submitted||{},
@@ -968,28 +928,6 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
 
-// ── ACTIVITY LOGGING (anonymous session — no individual member login exists yet) ──
-function getSessionId() {
-  let id = localStorage.getItem('nokesville_session_id');
-  if (!id) {
-    id = (crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-    localStorage.setItem('nokesville_session_id', id);
-  }
-  return id;
-}
-
-async function logActivity(eventType, targetId) {
-  try {
-    await sb.from('nokesville_activity_log').insert({
-      session_id: getSessionId(),
-      event_type: eventType,
-      target_id: targetId || null
-    });
-  } catch (err) {
-    console.error('Activity log error:', err);
-  }
-}
-
 function reviewLinkHtml(url, memberId, small) {
   if (!url) return '';
   const size = small ? 'font-size:12px;padding:3px 8px;' : 'font-size:12px;padding:4px 10px;';
@@ -1056,123 +994,14 @@ function claimBtnHtml(m) {
   return `<button class="claim-btn" onclick="openClaimModal(${m.id})">📋 Claim or Update This Business Profile</button>`;
 }
 
-// ── TAG SELECTOR (Strategic Partnerships / Referral Opportunities) ──
-// Structured multi-select tag data now; groundwork for AI-powered
-// matching later (V2) — we are NOT building any matching logic yet.
-const TAG_SUGGESTIONS = [
-  'Realtors','Mortgage Brokers','Insurance Agents','Property Managers','CPAs','Attorneys',
-  'Estate Attorneys','Marketing Agencies','Contractors','General Contractors','HVAC Companies',
-  'Plumbers','Electricians','Interior Designers','Financial Advisors','Title Companies',
-  'Home Inspectors','Landscapers','Photographers','Web Designers','IT Services','Printers',
-  'Caterers','Event Planners','Venues','Bankers','Accountants','Bookkeepers','Recruiters',
-  'Business Coaches','Notaries','Movers','Cleaning Services','Auto Dealers','Auto Repair',
-  'Dentists','Chiropractors','Physical Therapists','Veterinarians','Nonprofits'
-];
-
-const tagSelectorState = {}; // prefix -> array of selected tag strings
-
-function initTagSelector(prefix, initialTags) {
-  tagSelectorState[prefix] = [...(initialTags||[])];
-  const input = document.getElementById(prefix+'-input');
-  const suggestionsEl = document.getElementById(prefix+'-suggestions');
-  if (!input || input.dataset.tagWired) { renderTagChips(prefix); return; }
-  input.dataset.tagWired = '1';
-  input.addEventListener('input', () => renderTagSuggestions(prefix, input.value));
-  input.addEventListener('focus', () => renderTagSuggestions(prefix, input.value));
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const val = input.value.trim();
-      if (val) { addTag(prefix, val); input.value = ''; renderTagSuggestions(prefix, ''); }
-    }
-  });
-  document.addEventListener('click', (e) => {
-    if (!suggestionsEl) return;
-    if (e.target !== input && !suggestionsEl.contains(e.target)) suggestionsEl.classList.remove('open');
-  });
-  renderTagChips(prefix);
-}
-
-function renderTagSuggestions(prefix, query) {
-  const suggestionsEl = document.getElementById(prefix+'-suggestions');
-  if (!suggestionsEl) return;
-  const q = query.trim().toLowerCase();
-  const selected = tagSelectorState[prefix]||[];
-  let matches = TAG_SUGGESTIONS.filter(t => !selected.includes(t) && (!q || t.toLowerCase().includes(q)));
-  matches = matches.slice(0, 8);
-  let html = matches.map(t => `<div class="tag-suggestion-item" onclick="addTagFromSuggestion('${prefix}', ${JSON.stringify(t)})">${t}</div>`).join('');
-  if (q && !TAG_SUGGESTIONS.some(t => t.toLowerCase() === q) && !selected.some(t => t.toLowerCase() === q)) {
-    html += `<div class="tag-suggestion-item custom" onclick="addTagFromSuggestion('${prefix}', ${JSON.stringify(query.trim())})">➕ Add "${query.trim()}"</div>`;
-  }
-  suggestionsEl.innerHTML = html;
-  suggestionsEl.classList.toggle('open', html.length > 0);
-}
-
-function addTagFromSuggestion(prefix, value) {
-  addTag(prefix, value);
-  const input = document.getElementById(prefix+'-input');
-  if (input) { input.value = ''; input.focus(); }
-  const suggestionsEl = document.getElementById(prefix+'-suggestions');
-  if (suggestionsEl) suggestionsEl.classList.remove('open');
-}
-
-function addTag(prefix, value) {
-  const v = value.trim();
-  if (!v) return;
-  tagSelectorState[prefix] = tagSelectorState[prefix]||[];
-  if (!tagSelectorState[prefix].some(t => t.toLowerCase() === v.toLowerCase())) {
-    tagSelectorState[prefix].push(v);
-  }
-  renderTagChips(prefix);
-}
-
-function removeTag(prefix, index) {
-  tagSelectorState[prefix].splice(index, 1);
-  renderTagChips(prefix);
-}
-
-function renderTagChips(prefix) {
-  const chipsEl = document.getElementById(prefix+'-chips');
-  if (!chipsEl) return;
-  const tags = tagSelectorState[prefix]||[];
-  chipsEl.innerHTML = tags.map((t,i) => `<span class="tag-chip">${t}<button type="button" class="tag-chip-remove" onclick="removeTag('${prefix}',${i})">✕</button></span>`).join('');
-}
-
-function getTagSelectorValues(prefix) {
-  return tagSelectorState[prefix]||[];
-}
-
-function tagListHtml(tags) {
-  if (!tags || tags.length===0) return '';
-  return `<ul class="tag-list">${tags.map(t=>`<li>${t}</li>`).join('')}</ul>`;
-}
-
-function populateTagFilter() {
-  const sel = document.getElementById('tagFilter');
-  if (!sel) return;
-  const current = sel.value;
-  const allTags = new Set();
-  members.forEach(m => {
-    (m.strategicPartnerships||[]).forEach(t=>allTags.add(t));
-    (m.referralOpportunities||[]).forEach(t=>allTags.add(t));
-  });
-  const sorted = [...allTags].sort((a,b)=>a.localeCompare(b));
-  sel.innerHTML = '<option value="">All Partnership/Referral Tags</option>' + sorted.map(t=>`<option value="${t}">${t}</option>`).join('');
-  if (sorted.includes(current)) sel.value = current;
-}
-
 // ── MEMBERS ───────────────────────────────────────────────────
 function render() {
-  populateTagFilter();
   const q = document.getElementById('searchInput').value.toLowerCase();
   const sf = document.getElementById('statusFilter').value;
-  const tf = document.getElementById('tagFilter').value;
   let filtered = members.filter(m => {
     const matchS = sf === 'All' || m.status === sf;
-    const matchQ = !q || m.biz.toLowerCase().includes(q) || m.contact.toLowerCase().includes(q) || m.seat.toLowerCase().includes(q)
-      || (m.strategicPartnerships||[]).some(t=>t.toLowerCase().includes(q)) || (m.referralOpportunities||[]).some(t=>t.toLowerCase().includes(q));
-    const matchT = !tf || (m.strategicPartnerships||[]).includes(tf) || (m.referralOpportunities||[]).includes(tf);
-    return matchS && matchQ && matchT;
+    const matchQ = !q || m.biz.toLowerCase().includes(q) || m.contact.toLowerCase().includes(q) || m.seat.toLowerCase().includes(q);
+    return matchS && matchQ;
   });
   filtered = sortMembers(filtered);
 
@@ -1522,14 +1351,6 @@ function openProfileView(id) {
       ${m.offer?`<div class="profile-view-row"><strong>Offers:</strong> ${m.offer}</div>`:''}
       ${m.looking?`<div class="profile-view-row"><strong>Looking for:</strong> ${m.looking}</div>`:''}
     </div>` : ''}
-    ${(m.strategicPartnerships||[]).length ? `<div class="profile-view-section">
-      <div class="section-label">Strategic Partnerships</div>
-      ${tagListHtml(m.strategicPartnerships)}
-    </div>` : ''}
-    ${(m.referralOpportunities||[]).length ? `<div class="profile-view-section">
-      <div class="section-label">Referral Opportunities</div>
-      ${tagListHtml(m.referralOpportunities)}
-    </div>` : ''}
     ${(social || m.googleReview) ? `<div class="profile-view-section">
       <div class="section-label">Connect</div>
       ${social}
@@ -1561,9 +1382,7 @@ function openClaimModal(id) {
   if (!m) return;
   document.getElementById('claimBizName').textContent = m.biz;
   document.getElementById('c-contact-person').value = m.contactPerson || '';
-  document.getElementById('c-phone').value = m.phone || '';
   document.getElementById('c-email').value = m.email || '';
-  document.getElementById('c-website').value = m.website || '';
   document.getElementById('c-description').value = m.description || '';
   document.getElementById('c-category-primary').value = m.categoryPrimary || m.seat || '';
   document.getElementById('c-category-secondary').value = m.categorySecondary || '';
@@ -1577,8 +1396,6 @@ function openClaimModal(id) {
   document.getElementById('c-logo').value = m.logoUrl || '';
   document.getElementById('c-featured-image').value = m.featuredImageUrl || '';
   document.getElementById('c-consent').checked = !!m.consentContact;
-  initTagSelector('c-partnerships', m.strategicPartnerships||[]);
-  initTagSelector('c-referrals', m.referralOpportunities||[]);
   document.getElementById('claimModalOverlay').classList.add('open');
 }
 
@@ -1595,9 +1412,7 @@ async function submitClaim() {
   }
   const submitted = {
     contact_person: document.getElementById('c-contact-person').value.trim(),
-    phone: document.getElementById('c-phone').value.trim(),
     email: document.getElementById('c-email').value.trim(),
-    website: document.getElementById('c-website').value.trim(),
     description: document.getElementById('c-description').value.trim(),
     category_primary: document.getElementById('c-category-primary').value.trim(),
     category_secondary: document.getElementById('c-category-secondary').value.trim(),
@@ -1610,8 +1425,6 @@ async function submitClaim() {
     google_review: document.getElementById('c-google-review').value.trim(),
     logo_url: document.getElementById('c-logo').value.trim(),
     featured_image_url: document.getElementById('c-featured-image').value.trim(),
-    strategic_partnerships: getTagSelectorValues('c-partnerships'),
-    referral_opportunities: getTagSelectorValues('c-referrals'),
     consent_contact: true,
     consent_date: new Date().toISOString()
   };
@@ -1628,24 +1441,20 @@ async function submitClaim() {
 
 // ── ADMIN: PENDING PROFILE UPDATES ────────────────────────────
 const PENDING_FIELD_LABELS = {
-  contact_person: 'Contact Person', phone: 'Phone', email: 'Email', website: 'Website', description: 'Business Description',
+  contact_person: 'Contact Person', email: 'Email Address', description: 'Business Description',
   category_primary: 'Primary Category', category_secondary: 'Secondary Category',
   address: 'Business Address', facebook: 'Facebook', instagram: 'Instagram',
   linkedin: 'LinkedIn', youtube: 'YouTube', google_business_url: 'Google Business Profile',
-  google_review: 'Google Review Link', logo_url: 'Business Logo', featured_image_url: 'Featured Image',
-  strategic_partnerships: 'Strategic Partnerships', referral_opportunities: 'Referral Opportunities'
+  google_review: 'Google Review Link', logo_url: 'Business Logo', featured_image_url: 'Featured Image'
 };
 
 const MEMBER_FIELD_MAP = {
-  contact_person: 'contactPerson', phone: 'phone', email: 'email', website: 'website', description: 'description',
+  contact_person: 'contactPerson', email: 'email', description: 'description',
   category_primary: 'categoryPrimary', category_secondary: 'categorySecondary',
   address: 'address', facebook: 'facebook', instagram: 'instagram',
   linkedin: 'linkedin', youtube: 'youtube', google_business_url: 'googleBusinessUrl',
-  google_review: 'googleReview', logo_url: 'logoUrl', featured_image_url: 'featuredImageUrl',
-  strategic_partnerships: 'strategicPartnerships', referral_opportunities: 'referralOpportunities'
+  google_review: 'googleReview', logo_url: 'logoUrl', featured_image_url: 'featuredImageUrl'
 };
-
-const ARRAY_FIELDS = ['strategic_partnerships', 'referral_opportunities'];
 
 function renderPendingUpdates() {
   const badge = document.getElementById('claimsPendingBadge');
@@ -1661,22 +1470,9 @@ function renderPendingUpdates() {
     const bizName = m ? m.biz : '(member no longer in directory)';
     const dateStr = p.submittedAt ? new Date(p.submittedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     const rows = Object.keys(PENDING_FIELD_LABELS).map(key => {
-      const isArray = ARRAY_FIELDS.includes(key);
-      const newRaw = p.submitted[key];
-      const currentRaw = m ? m[MEMBER_FIELD_MAP[key]] : null;
-      if (isArray) {
-        const newArr = Array.isArray(newRaw) ? newRaw : [];
-        if (newArr.length === 0) return '';
-        const currentArr = Array.isArray(currentRaw) ? currentRaw : [];
-        const changed = JSON.stringify([...newArr].sort()) !== JSON.stringify([...currentArr].sort());
-        return `<div class="diff-row">
-          <div class="diff-cell ${changed?'changed':''}"><span class="diff-field-label">${PENDING_FIELD_LABELS[key]} (current)</span>${currentArr.length?currentArr.join(', '):'—'}</div>
-          <div class="diff-cell ${changed?'changed':''}"><span class="diff-field-label">${PENDING_FIELD_LABELS[key]} (submitted)</span>${newArr.join(', ')}</div>
-        </div>`;
-      }
-      const newVal = (newRaw||'').toString().trim();
+      const newVal = (p.submitted[key]||'').toString().trim();
       if (!newVal) return '';
-      const currentVal = (currentRaw||'').toString().trim();
+      const currentVal = m ? (m[MEMBER_FIELD_MAP[key]]||'').toString().trim() : '';
       const changed = newVal !== currentVal;
       return `<div class="diff-row">
         <div class="diff-cell ${changed?'changed':''}"><span class="diff-field-label">${PENDING_FIELD_LABELS[key]} (current)</span>${currentVal||'—'}</div>
@@ -1705,11 +1501,6 @@ async function approvePendingUpdate(pendingId) {
   if (!p) return;
   const memberUpdate = {};
   Object.keys(MEMBER_FIELD_MAP).forEach(key => {
-    if (ARRAY_FIELDS.includes(key)) {
-      const arr = Array.isArray(p.submitted[key]) ? p.submitted[key] : [];
-      if (arr.length > 0) memberUpdate[key] = arr;
-      return;
-    }
     const val = (p.submitted[key]||'').toString().trim();
     if (val) memberUpdate[key] = val;
   });
@@ -1876,13 +1667,9 @@ function openModal(id) {
     document.getElementById('f-offer').value=m.offer||'';
     document.getElementById('f-looking').value=m.looking||'';
     document.getElementById('f-notes').value=m.notes||'';
-    initTagSelector('f-partnerships', m.strategicPartnerships||[]);
-    initTagSelector('f-referrals', m.referralOpportunities||[]);
   } else {
     ['f-biz','f-contact','f-seat','f-phone','f-email','f-website','f-google-review','f-since','f-renewal','f-offer','f-looking','f-notes'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('f-status').value='Active';
-    initTagSelector('f-partnerships', []);
-    initTagSelector('f-referrals', []);
   }
   document.getElementById('overlay').classList.add('open');
 }
@@ -1903,9 +1690,7 @@ async function saveMember() {
     renewal:document.getElementById('f-renewal').value||null,
     offer:document.getElementById('f-offer').value||'',
     looking:document.getElementById('f-looking').value||'',
-    notes:document.getElementById('f-notes').value||'',
-    strategic_partnerships: getTagSelectorValues('f-partnerships'),
-    referral_opportunities: getTagSelectorValues('f-referrals')
+    notes:document.getElementById('f-notes').value||''
   };
   if (editingId) {
     await sb.from('nokesville_members').update(data).eq('id', editingId);
@@ -2015,6 +1800,29 @@ function copyEmails() {
 let checkinsThisScan = 0;
 const MAX_CHECKINS_PER_SCAN = 1;
 
+// Device-level lock: survives page reloads/rescans (unlike a plain JS variable),
+// so re-scanning the same QR code on the same phone can't be used to check in a second person.
+function getDeviceCheckinLock() {
+  try {
+    const raw = localStorage.getItem('nba_checkin_device_lock');
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    const today = new Date().toISOString().slice(0,10);
+    return data.date === today ? data : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function setDeviceCheckinLock(name) {
+  const today = new Date().toISOString().slice(0,10);
+  try {
+    localStorage.setItem('nba_checkin_device_lock', JSON.stringify({ date: today, name }));
+  } catch (err) {
+    console.error('Could not set device check-in lock:', err);
+  }
+}
+
 async function initCheckin() {
   const today = new Date();
   document.getElementById('checkinDateDisplay').textContent = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
@@ -2027,36 +1835,35 @@ async function initCheckin() {
       <div><div class="checkin-name">${m.contact}</div><div class="checkin-biz">${m.biz}</div></div>
       <div class="checkin-status" id="ci-status-${m.id}">${todayAttendance[m.id]==='present'?'✓':''}</div>
     </div>`).join('');
+
+  const deviceLock = getDeviceCheckinLock();
+  if (deviceLock) {
+    showToast('✅ This phone already checked in ' + deviceLock.name + ' today');
+  }
 }
 
 async function checkInMember(id, name, biz) {
   const card = document.getElementById('ci-'+id);
   const statusEl = document.getElementById('ci-status-'+id);
 
+  // Checked-in cards are locked — tapping again does nothing except confirm they're already in.
+  // (Undoing a check-in now requires an admin, via the Attendance tab — not available from this shared screen.)
   if (card.classList.contains('checked-in')) {
-    card.classList.remove('checked-in');
-    statusEl.textContent = '';
-    checkinsThisScan = Math.max(0, checkinsThisScan - 1);
-    const dateStr = new Date().toISOString().slice(0,10);
-    const existing = meetings.find(m=>m.date===dateStr);
-    if (existing) {
-      const updated = {...existing.attendance};
-      delete updated[id];
-      await sb.from('nokesville_meetings').update({attendance:updated}).eq('id',existing.id);
-    }
-    await loadAll();
-    showToast('↩️ Check-in removed for ' + name);
+    showToast('✅ ' + name + ' is already checked in');
     return;
   }
 
-  if (checkinsThisScan >= MAX_CHECKINS_PER_SCAN) {
-    showToast('⚠️ Only one check-in per scan. Please have each person scan the QR code individually.');
+  // Block further check-ins once this device has already been used to check someone in today
+  const deviceLock = getDeviceCheckinLock();
+  if (deviceLock) {
+    showToast('⚠️ This phone already checked in ' + deviceLock.name + ' today. Please have others scan the QR code with their own phone.');
     return;
   }
 
   card.classList.add('checked-in');
   statusEl.textContent='✓';
   checkinsThisScan++;
+  setDeviceCheckinLock(name);
   const dateStr = new Date().toISOString().slice(0,10);
   const existing = meetings.find(m=>m.date===dateStr);
   if (existing) {
