@@ -23,34 +23,57 @@
     .loading-text { color: #a5b0e8; font-size: 14px; font-weight: 500; }
 
     /* GATE */
-    .gate { display: block; min-height: 100vh; background: #000; }
-    .gate-hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
-    .gate-hero { background:
-        radial-gradient(1200px 700px at 20% 15%, rgba(107,127,212,0.45), transparent 60%),
-        radial-gradient(900px 600px at 85% 80%, rgba(245,158,11,0.20), transparent 60%),
-        linear-gradient(160deg, #0b1436 0%, #1a2b6b 55%, #101a3f 100%); }
-    .gate-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.70) 100%); z-index: 1; }
-    .gate-hero-content { position: relative; z-index: 2; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .gate-hero-logo { height: 56px; margin-bottom: 8px; }
-    .gate-hero-divider { width: 48px; height: 3px; background: var(--gold); border-radius: 2px; margin: 4px auto; }
-    .gate-hero-title { font-size: clamp(26px, 5vw, 52px); font-weight: 800; color: #fff; line-height: 1.1; letter-spacing: -0.5px; max-width: 680px; }
-    .gate-hero-sub { font-size: clamp(14px, 2vw, 20px); font-weight: 500; color: #a5b0e8; letter-spacing: 0.5px; }
-    .gate-hero-btn { margin-top: 8px; padding: 14px 36px; border-radius: 10px; background: var(--gold); color: #111; font-size: 15px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: opacity .15s, transform .15s; }
-    .gate-hero-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    /* ── VIBE by CORE AI — sign-in identity ────────────────────
+       Tokens: vibe-design-system/vibe-tokens.css
+       Near-black field, violet-to-cyan light, letterspaced caps. */
+    .gate { display: block; min-height: 100vh; background: #05070f; overflow-x: hidden; }
+    .gate-hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden;
+      background:
+        radial-gradient(760px 520px at 12% 8%, rgba(139,92,246,0.30), transparent 62%),
+        radial-gradient(680px 520px at 88% 22%, rgba(56,189,248,0.22), transparent 62%),
+        radial-gradient(900px 640px at 50% 118%, rgba(124,58,237,0.28), transparent 62%),
+        #05070f; }
+    .gate-hero-content { position: relative; z-index: 2; width: 100%; padding: 48px 20px 64px; display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 780px; }
+    .vibe-mark { font-size: clamp(40px, 8vw, 76px); font-weight: 900; letter-spacing: 0.16em; line-height: 1;
+      background: linear-gradient(95deg, #ffffff 0%, #c4b5fd 38%, #60a5fa 72%, #38bdf8 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .vibe-by { font-size: clamp(10px, 1.6vw, 13px); font-weight: 700; letter-spacing: 0.42em; color: #94a3b8; margin-top: 6px; }
+    .vibe-by b { color: #a78bfa; font-weight: 800; }
+    .gate-eyebrow { display: flex; align-items: center; gap: 14px; margin-top: 26px; font-size: 12px; font-weight: 700; letter-spacing: 0.28em; color: #a78bfa; }
+    .gate-eyebrow::before, .gate-eyebrow::after { content: ''; width: clamp(28px, 8vw, 76px); height: 1px; background: linear-gradient(90deg, transparent, #7c3aed); }
+    .gate-eyebrow::after { background: linear-gradient(90deg, #7c3aed, transparent); }
+    .gate-hero-title { font-size: clamp(28px, 5.2vw, 54px); font-weight: 800; color: #fff; line-height: 1.08; letter-spacing: -0.5px; max-width: 700px; }
+    .gate-hero-sub { font-size: clamp(15px, 2vw, 21px); font-weight: 700; letter-spacing: 0.02em;
+      background: linear-gradient(95deg, #a78bfa, #60a5fa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .gate-pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 30px; width: 100%; max-width: 620px; }
+    .pillar-ring { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid rgba(167,139,250,0.55); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; background: rgba(124,58,237,0.10); }
+    .pillar-title { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: #fff; margin-bottom: 5px; }
+    .pillar-body { font-size: 11.5px; line-height: 1.5; color: #94a3b8; }
+    @media (max-width: 560px) { .gate-pillars { gap: 10px; } .pillar-body { font-size: 10.5px; } .pillar-ring { width: 44px; height: 44px; } }
+    .gate-hero-btn { margin-top: 32px; padding: 15px 40px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit;
+      background: linear-gradient(95deg, #4f46e5, #7c3aed 55%, #0ea5e9); color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.04em;
+      box-shadow: 0 10px 30px rgba(99,102,241,0.35); transition: transform .15s, box-shadow .15s; }
+    .gate-hero-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 38px rgba(99,102,241,0.5); }
+    .gate-tagline { position: absolute; bottom: 0; left: 0; right: 0; z-index: 2; padding: 11px 16px; text-align: center;
+      background: linear-gradient(95deg, #1d4ed8, #7c3aed 55%, #a855f7); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.16em; }
+    @media (max-width: 560px) { .gate-tagline { font-size: 9.5px; letter-spacing: 0.06em; padding: 10px 10px; } }
     .gate-scroll-hint { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 2; color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 6px; animation: bounce 2s infinite; }
     @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
-    .gate-login { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #111111; padding: 60px 24px; }
-    .gate-box { background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 44px 40px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
-    .gate-box-logo { height: 44px; margin-bottom: 20px; }
-    .gate-box h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-    .gate-box p { font-size: 14px; color: #6b7faa; margin-bottom: 28px; }
+    .gate-login { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 60px 24px;
+      background: radial-gradient(700px 500px at 50% 0%, rgba(124,58,237,0.20), transparent 65%), #05070f; }
+    .gate-box { background: rgba(15,18,42,0.92); border: 1px solid rgba(139,92,246,0.32); border-radius: 20px; padding: 44px 40px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset; }
+    .gate-box .vibe-mark { font-size: 34px; }
+    .gate-box .vibe-by { font-size: 9px; margin-bottom: 22px; }
+    .gate-box h2 { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .gate-box p { font-size: 14px; color: #8b95b8; margin-bottom: 26px; }
     .gate-input { width: 100%; padding: 13px 16px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); font-size: 15px; outline: none; font-family: inherit; margin-bottom: 12px; text-align: center; letter-spacing: 3px; color: #fff; transition: border-color .15s; }
-    .gate-input:focus { border-color: var(--periwinkle); }
+    .gate-input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(139,92,246,0.18); }
     .gate-input::placeholder { letter-spacing: 1px; color: #555; }
-    .gate-btn { width: 100%; padding: 13px; border-radius: 10px; border: none; background: var(--navy); color: var(--white); font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .gate-btn:hover { background: #2d3e8f; }
+    .gate-btn { width: 100%; padding: 13px; border-radius: 10px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; color: #fff;
+      background: linear-gradient(95deg, #4f46e5, #7c3aed 55%, #0ea5e9); box-shadow: 0 8px 24px rgba(99,102,241,0.30); transition: transform .15s; }
+    .gate-btn:hover { transform: translateY(-1px); }
     .gate-error { color: #f87171; font-size: 13px; margin-top: 8px; display: none; }
-    .gate-note { font-size: 12px; color: #555; margin-top: 16px; }
+    .gate-note { font-size: 12px; color: #6b7280; margin-top: 18px; }
 
     /* HEADER */
     .header { background: linear-gradient(135deg, var(--navy), #2d3e8f); padding: 14px 20px; }
@@ -362,19 +385,40 @@
 <!-- GATE -->
 <div class="gate" id="gate" style="display:none">
   <div class="gate-hero">
-    <div class="gate-overlay"></div>
     <div class="gate-hero-content">
-      <img src="https://i.imgur.com/LpBodPi.png" alt="CORE AI" class="gate-hero-logo" />
-      <div class="gate-hero-divider"></div>
+      <div class="vibe-mark">VIBE</div>
+      <div class="vibe-by">BY <b>CORE AI</b></div>
+
+      <div class="gate-eyebrow">WELCOME TO</div>
       <h1 class="gate-hero-title">Nokesville<br>Business Association</h1>
-      <p class="gate-hero-sub">Member Directory & Networking Hub</p>
+      <p class="gate-hero-sub">Member Directory &amp; Networking Hub</p>
+
+      <div class="gate-pillars">
+        <div>
+          <div class="pillar-ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="pillar-title">FIND A MEMBER</div>
+          <div class="pillar-body">Every member business, one searchable directory.</div>
+        </div>
+        <div>
+          <div class="pillar-ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div class="pillar-title">SHARE A REFERRAL</div>
+          <div class="pillar-body">Know who to send business to, and why.</div>
+        </div>
+        <div>
+          <div class="pillar-ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-2 2a2.8 2.8 0 0 1-4-4l4-4"/><path d="M13 7l2-2a2.8 2.8 0 0 1 4 4l-4 4"/><path d="M9 12h6"/></svg></div>
+          <div class="pillar-title">MAKE CONNECTIONS</div>
+          <div class="pillar-body">Better conversations before you walk in the room.</div>
+        </div>
+      </div>
+
       <button class="gate-hero-btn" onclick="document.getElementById('loginSection').scrollIntoView({behavior:'smooth'})">Sign In →</button>
     </div>
-    <div class="gate-scroll-hint"><span>Scroll to sign in</span><span>↓</span></div>
+    <div class="gate-tagline">RIGHT PLACE. RIGHT PEOPLE. RIGHT TIME.</div>
   </div>
   <div class="gate-login" id="loginSection">
     <div class="gate-box">
-      <img src="https://i.imgur.com/LpBodPi.png" alt="CORE AI" class="gate-box-logo" />
+      <div class="vibe-mark">VIBE</div>
+      <div class="vibe-by">BY <b>CORE AI</b></div>
       <h2>Member Access</h2>
       <p>Enter your access code to open the Member Directory</p>
       <input class="gate-input" type="password" id="passwordInput" placeholder="Enter access code" onkeydown="if(event.key==='Enter') checkPassword()" />
