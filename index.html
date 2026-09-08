@@ -267,6 +267,9 @@
     .completion-bar-fill.low { background: #dc2626; }
     .completion-bar-fill.mid { background: #d97706; }
     .completion-label { font-size: 11px; font-weight: 700; color: var(--gray); }
+    .completion-done { font-size: 11px; font-weight: 700; color: #059669; }
+    .claim-btn-quiet { background: transparent; border-color: var(--border); color: var(--gray); font-weight: 600; }
+    .claim-btn-quiet:hover { background: var(--light); }
     .consent-field { display: flex; align-items: flex-start; gap: 8px; background: var(--light); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 6px; }
     .consent-field input[type="checkbox"] { width: auto; margin-top: 3px; flex-shrink: 0; }
     .consent-field label { font-size: 12px; font-weight: 500; color: var(--dark); line-height: 1.5; }
@@ -888,6 +891,9 @@ function checkPassword() {
 async function launchApp() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  // The login panel sits a full screen below the hero, so without this
+  // the app opens wherever the person had scrolled to.
+  document.documentElement.scrollTop = 0; document.body.scrollTop = 0;
   await loadAll();
   applyAccessLevel();
   logActivity('login');
@@ -1028,14 +1034,29 @@ function profileCompletion(m) {
 function completionHtml(m) {
   const { pct, missing } = profileCompletion(m);
   const barClass = pct >= 70 ? '' : pct >= 40 ? 'mid' : 'low';
-  const missingText = missing.length ? `Missing: ${missing.slice(0,3).join(', ')}${missing.length>3?'…':''}` : 'Profile complete! 🎉';
+
+  // Finished profiles earn a clean card — no bar, just a quiet confirmation.
+  if (pct === 100) {
+    return `<div class="completion-wrap"><div class="completion-done">✓ Profile complete</div></div>`;
+  }
+
+  // Admins are diagnosing; members are being invited. Different sentence.
+  const label = isAdmin
+    ? `Profile Completion: ${pct}% <span style="font-weight:500;color:#999">— Missing: ${missing.slice(0,3).join(', ')}${missing.length>3?'…':''}</span>`
+    : `Profile ${pct}% complete <span style="font-weight:500;color:#999">— add ${missing.slice(0,2).join(' and ')} to get found more often</span>`;
+
   return `<div class="completion-wrap">
-    <div class="completion-label">Profile Completion: ${pct}% <span style="font-weight:500;color:#999">— ${missingText}</span></div>
+    <div class="completion-label">${label}</div>
     <div class="completion-bar-bg"><div class="completion-bar-fill ${barClass}" style="width:${pct}%"></div></div>
   </div>`;
 }
 
 function claimBtnHtml(m) {
+  // A complete profile shouldn't keep asking. Quiet link instead of a button.
+  const { pct } = profileCompletion(m);
+  if (pct === 100) {
+    return `<button class="claim-btn claim-btn-quiet" onclick="openClaimModal(${m.id})">Update this profile</button>`;
+  }
   return `<button class="claim-btn" onclick="openClaimModal(${m.id})">📋 Claim or Update This Business Profile</button>`;
 }
 
@@ -1075,7 +1096,7 @@ function render() {
     ? '<div class="empty">No members found</div>'
     : filtered.map(m => `
     <div class="table-row ${isAdmin ? '' : 'member-view'}">
-      <div><div class="biz-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa"><a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})" style="color:inherit">${m.website}</a></div>`:''}${reviewLinkHtml(m.googleReview, m.id)}${socialLinksHtml(m)}${isAdmin?completionHtml(m):''}${claimBtnHtml(m)}</div>
+      <div><div class="biz-name"><span class="biz-name-link" onclick="openProfileView(${m.id})">${m.biz}</span></div><div class="biz-contact">${m.contact}</div>${m.website?`<div style="font-size:11px;color:#aaa"><a href="${m.website}" target="_blank" onclick="logActivity('website_click', ${m.id})" style="color:inherit">${m.website}</a></div>`:''}${reviewLinkHtml(m.googleReview, m.id)}${socialLinksHtml(m)}${completionHtml(m)}${claimBtnHtml(m)}</div>
       <div><span class="seat-badge">${m.seat}</span></div>
       ${isAdmin ? `<div>${renewalBadge(m.renewal)}</div><div>${daysLeftBadge(m.renewal)}</div>` : ''}
       <div style="font-size:13px;color:var(--gray)"><a href="tel:${m.phone}" style="color:inherit;text-decoration:none">${m.phone}</a></div>
@@ -1097,7 +1118,7 @@ function render() {
         </div>
         ${reviewLinkHtml(m.googleReview, m.id, true)}
         ${socialLinksHtml(m)}
-        ${isAdmin?completionHtml(m):''}
+        ${completionHtml(m)}
         ${claimBtnHtml(m)}
       </div>
       <div>
