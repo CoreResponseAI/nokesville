@@ -773,14 +773,18 @@
       Changes are reviewed by NBA before they go live.
     </p>
     <div class="section-label">Business Info</div>
-    <div class="field"><label>Contact Person</label><input id="c-contact-person" /></div>
+    <div class="field"><label>Contact Name<span class="field-hint">The person shown on your directory listing</span></label><input id="c-contact-person" /></div>
     <div class="field"><label>Email Address</label><input id="c-email" type="email" placeholder="you@yourbusiness.com" /></div>
+    <div class="field"><label>Phone Number</label><input id="c-phone" type="tel" placeholder="(555) 555-5555" /></div>
+    <div class="field"><label>Website</label><input id="c-website" placeholder="www.yourbusiness.com" /></div>
     <div class="field"><label>Business Description</label><textarea id="c-description" placeholder="A short description of what your business does"></textarea></div>
     <div class="field-row">
       <div class="field"><label>Primary Category</label><input id="c-category-primary" placeholder="e.g. Real Estate" /></div>
       <div class="field"><label>Secondary Category</label><input id="c-category-secondary" /></div>
     </div>
     <div class="field"><label>Business Address</label><input id="c-address" /></div>
+    <div class="field"><label>What You Offer<span class="field-hint">The services or products you want members to refer you for</span></label><input id="c-offer" /></div>
+    <div class="field"><label>Who You're Looking For<span class="field-hint">The kind of customer or introduction that helps you most</span></label><input id="c-looking" /></div>
 
     <div class="section-label">Social Media</div>
     <div class="field"><label>Facebook</label><input id="c-facebook" placeholder="https://facebook.com/..." /></div>
@@ -1526,7 +1530,12 @@ function openClaimModal(id) {
   const m = members.find(x => x.id === id);
   if (!m) return;
   document.getElementById('claimBizName').textContent = m.biz;
-  document.getElementById('c-contact-person').value = m.contactPerson || '';
+  // Show the name the directory actually displays, not the orphaned field.
+  document.getElementById('c-contact-person').value = m.contact || m.contactPerson || '';
+  document.getElementById('c-phone').value = m.phone || '';
+  document.getElementById('c-website').value = m.website || '';
+  document.getElementById('c-offer').value = m.offer || '';
+  document.getElementById('c-looking').value = m.looking || '';
   document.getElementById('c-email').value = m.email || '';
   document.getElementById('c-description').value = m.description || '';
   document.getElementById('c-category-primary').value = m.categoryPrimary || m.seat || '';
@@ -1556,7 +1565,11 @@ async function submitClaim() {
     return;
   }
   const submitted = {
-    contact_person: document.getElementById('c-contact-person').value.trim(),
+    contact: document.getElementById('c-contact-person').value.trim(),
+    phone: document.getElementById('c-phone').value.trim(),
+    website: document.getElementById('c-website').value.trim(),
+    offer: document.getElementById('c-offer').value.trim(),
+    looking: document.getElementById('c-looking').value.trim(),
     email: document.getElementById('c-email').value.trim(),
     description: document.getElementById('c-description').value.trim(),
     category_primary: document.getElementById('c-category-primary').value.trim(),
@@ -1586,7 +1599,10 @@ async function submitClaim() {
 
 // ── ADMIN: PENDING PROFILE UPDATES ────────────────────────────
 const PENDING_FIELD_LABELS = {
-  contact_person: 'Contact Person', email: 'Email Address', description: 'Business Description',
+  contact: 'Contact Name', contact_person: 'Contact Person (old field)',
+  phone: 'Phone Number', website: 'Website',
+  offer: 'What They Offer', looking: 'Looking For',
+  email: 'Email Address', description: 'Business Description',
   category_primary: 'Primary Category', category_secondary: 'Secondary Category',
   address: 'Business Address', facebook: 'Facebook', instagram: 'Instagram',
   linkedin: 'LinkedIn', youtube: 'YouTube', google_business_url: 'Google Business Profile',
@@ -1594,7 +1610,9 @@ const PENDING_FIELD_LABELS = {
 };
 
 const MEMBER_FIELD_MAP = {
-  contact_person: 'contactPerson', email: 'email', description: 'description',
+  contact: 'contact', contact_person: 'contactPerson',
+  phone: 'phone', website: 'website', offer: 'offer', looking: 'looking',
+  email: 'email', description: 'description',
   category_primary: 'categoryPrimary', category_secondary: 'categorySecondary',
   address: 'address', facebook: 'facebook', instagram: 'instagram',
   linkedin: 'linkedin', youtube: 'youtube', google_business_url: 'googleBusinessUrl',
